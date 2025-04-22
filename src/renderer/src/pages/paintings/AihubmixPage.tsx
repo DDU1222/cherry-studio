@@ -33,19 +33,8 @@ import { type ConfigItem, createModeConfigs } from './config/aihubmixConfig'
 import { DEFAULT_PAINTING } from './config/constants'
 import PaintingsList from './PaintingsList'
 
-// export const TEXT_TO_IMAGES_MODELS = [
-//   {
-//     id: 'ideogram',
-//     provider: 'aihubmix',
-//     name: 'ideogram',
-//     group: 'ideogram'
-//   }
-// ]
-
-// const modelOptions = TEXT_TO_IMAGES_MODELS.map((model) => ({
-//   label: model.name,
-//   value: model.id
-// }))
+// 使用函数创建配置项
+const modeConfigs = createModeConfigs()
 
 const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   const [mode, setMode] = useState<keyof PaintingsState>('generate')
@@ -57,6 +46,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [spaceClickCount, setSpaceClickCount] = useState(0)
   const [isTranslating, setIsTranslating] = useState(false)
+  const [fileMap, setFileMap] = useState<{ [key: string]: FileType }>({})
 
   const { t } = useTranslation()
   const { theme } = useTheme()
@@ -77,10 +67,10 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   const aihubmixProvider = providers.find((p) => p.id === 'aihubmix')!
 
   const modeOptions = [
-    { label: t('paintings.mode.generate'), value: 'generate' }
+    { label: t('paintings.mode.generate'), value: 'generate' },
     // { label: t('paintings.mode.edit'), value: 'edit' },
-    // { label: t('paintings.mode.remix'), value: 'remix' },
-    // { label: t('paintings.mode.upscale'), value: 'upscale' }
+    { label: t('paintings.mode.remix'), value: 'remix' },
+    { label: t('paintings.mode.upscale'), value: 'upscale' }
   ]
   const getNewPainting = () => {
     return {
@@ -151,47 +141,58 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             aspect_ratio: painting.aspectRatio,
             num_images: painting.numImages,
             style_type: painting.styleType,
-            seed: painting.seed || undefined,
+            seed: painting.seed ? +painting.seed : undefined,
             negative_prompt: painting.negativePrompt || undefined,
             magic_prompt_option: painting.magicPromptOption ? 'ON' : 'OFF'
           }
         }
         body = JSON.stringify(requestData)
         headers['Content-Type'] = 'application/json'
-      } else if (mode === 'remix') {
+      } else {
+        if (!painting.imageFile) {
+          window.modal.error({
+            content: t('paintings.image_file_required'),
+            centered: true
+          })
+          return
+        }
+        if (!fileMap[painting.imageFile]) {
+          window.modal.error({
+            content: t('paintings.image_file_retry'),
+            centered: true
+          })
+          return
+        }
         const form = new FormData()
-        form.append(
-          'image_request',
-          JSON.stringify({
-            prompt,
+        let imageRequest: Record<string, any> = {
+          prompt,
+          num_images: painting.numImages,
+          seed: painting.seed ? +painting.seed : undefined,
+          magic_prompt_option: painting.magicPromptOption ? 'ON' : 'OFF'
+        }
+        if (mode === 'remix') {
+          imageRequest = {
+            ...imageRequest,
             model: painting.model,
             aspect_ratio: painting.aspectRatio,
             image_weight: painting.imageWeight,
-            num_images: painting.numImages,
-            style_type: painting.styleType,
-            seed: painting.seed,
-            negative_prompt: painting.negativePrompt,
-            magic_prompt_option: painting.magicPromptOption ? 'ON' : 'OFF'
-          })
-        )
-        // 暂时不支持 remix
-        // form.append('image_file', painting.imageFile.path)
-        body = form
-      } else if (mode === 'upscale') {
-        const form = new FormData()
-        form.append(
-          'image_request',
-          JSON.stringify({
-            prompt,
+            style_type: painting.styleType
+          }
+        } else if (mode === 'upscale') {
+          imageRequest = {
+            ...imageRequest,
             resemblance: painting.resemblance,
-            detail: painting.detail,
-            num_images: painting.numImages,
-            seed: painting.seed,
-            magic_prompt_option: painting.magicPromptOption ? 'ON' : 'OFF'
-          })
-        )
-        // 暂时不支持 upscale
-        // form.append('image_file', painting.imageFile)
+            detail: painting.detail
+          }
+        } else if (mode === 'edit') {
+          imageRequest = {
+            ...imageRequest,
+            model: painting.model,
+            style_type: painting.styleType
+          }
+        }
+        form.append('image_request', JSON.stringify(imageRequest))
+        form.append('image_file', fileMap[painting.imageFile] as unknown as Blob)
         body = form
       }
 
@@ -219,6 +220,14 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         )
 
         const validFiles = downloadedFiles.filter((file): file is FileType => file !== null)
+
+        // 如果没有成功下载任何文件但有URLs，显示代理提示
+        if (validFiles.length === 0 && urls.length > 0) {
+          window.modal.error({
+            content: t('paintings.proxy_required'),
+            centered: true
+          })
+        }
 
         await FileManager.addFiles(validFiles)
 
@@ -328,22 +337,19 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   // 处理模式切换
   const handleModeChange = (value: string) => {
     setMode(value as keyof PaintingsState)
-    if (persistentData[value as keyof PaintingsState].length > 0) {
+    if (persistentData[value as keyof PaintingsState] && persistentData[value as keyof PaintingsState].length > 0) {
       setPainting(persistentData[value as keyof PaintingsState][0])
     } else {
       setPainting(DEFAULT_PAINTING)
     }
   }
 
-  // 处理随机种子的点击事件
+  // 处理随机种子的点击事件 >=0<=2147483647
   const handleRandomSeed = () => {
-    const randomSeed = Math.floor(Math.random() * 1000000).toString()
+    const randomSeed = Math.floor(Math.random() * 2147483647).toString()
     updatePaintingState({ seed: randomSeed })
     return randomSeed
   }
-
-  // 使用函数创建配置项
-  const modeConfigs = createModeConfigs(handleRandomSeed)
 
   // 渲染配置项的函数
   const renderConfigItem = (item: ConfigItem, index: number) => {
@@ -403,7 +409,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         )
       case 'input':
         // 处理随机种子按钮的特殊情况
-        if (item.key === 'seed' && item.suffix) {
+        if (item.key === 'seed') {
           return (
             <Input
               key={index}
@@ -462,11 +468,13 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             showUploadList={false}
             listType="picture-card"
             onChange={async ({ file }) => {
-              updatePaintingState({ [item.key!]: file.originFileObj })
+              const path = file.originFileObj?.path || ''
+              setFileMap({ ...fileMap, [path]: file.originFileObj as unknown as FileType })
+              updatePaintingState({ [item.key!]: path })
             }}>
             {painting[item.key!] ? (
               <ImagePreview>
-                <img src={'file://' + FileManager.getSafePath(painting[item.key!])} alt="预览图" />
+                <img src={'file://' + painting[item.key!]} alt="预览图" />
               </ImagePreview>
             ) : (
               <ImageSizeImage src={IcImageUp} theme={theme} />

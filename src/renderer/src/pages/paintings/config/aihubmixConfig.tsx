@@ -1,4 +1,3 @@
-import { RedoOutlined } from '@ant-design/icons'
 import type { PaintingAction, PaintingsState } from '@renderer/types'
 
 import { ASPECT_RATIOS, STYLE_TYPES } from './constants'
@@ -33,10 +32,7 @@ export type ConfigItem = {
 export type AihubmixMode = keyof PaintingsState
 
 // 创建配置项函数
-export const createModeConfigs = (
-  // modelOptions: Array<{ label: string; value: string }>,
-  onRandomSeed: () => string
-): Record<AihubmixMode, ConfigItem[]> => {
+export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
   return {
     paintings: [],
     generate: [
@@ -69,7 +65,7 @@ export const createModeConfigs = (
         tooltip: 'paintings.generate.number_images_tip'
       },
       {
-        type: 'inputNumber',
+        type: 'slider',
         key: 'numImages',
         min: 1,
         max: 8
@@ -91,8 +87,7 @@ export const createModeConfigs = (
       },
       {
         type: 'input',
-        key: 'seed',
-        suffix: <RedoOutlined onClick={onRandomSeed} style={{ cursor: 'pointer', color: 'var(--color-text-2)' }} />
+        key: 'seed'
       },
       {
         type: 'title',
@@ -134,7 +129,7 @@ export const createModeConfigs = (
         tooltip: 'paintings.edit.number_images_tip'
       },
       {
-        type: 'inputNumber',
+        type: 'slider',
         key: 'numImages',
         min: 1,
         max: 8
@@ -156,8 +151,7 @@ export const createModeConfigs = (
       },
       {
         type: 'input',
-        key: 'seed',
-        suffix: <RedoOutlined onClick={onRandomSeed} style={{ cursor: 'pointer', color: 'var(--color-text-2)' }} />
+        key: 'seed'
       },
       {
         type: 'title',
@@ -211,7 +205,7 @@ export const createModeConfigs = (
         tooltip: 'paintings.remix.number_images_tip'
       },
       {
-        type: 'inputNumber',
+        type: 'slider',
         key: 'numImages',
         min: 1,
         max: 8
@@ -233,8 +227,7 @@ export const createModeConfigs = (
       },
       {
         type: 'input',
-        key: 'seed',
-        suffix: <RedoOutlined onClick={onRandomSeed} style={{ cursor: 'pointer', color: 'var(--color-text-2)' }} />
+        key: 'seed'
       },
       {
         type: 'title',
@@ -277,7 +270,7 @@ export const createModeConfigs = (
         tooltip: 'paintings.upscale.number_images_tip'
       },
       {
-        type: 'inputNumber',
+        type: 'slider',
         key: 'numImages',
         min: 1,
         max: 8
@@ -289,8 +282,7 @@ export const createModeConfigs = (
       },
       {
         type: 'input',
-        key: 'seed',
-        suffix: <RedoOutlined onClick={onRandomSeed} style={{ cursor: 'pointer', color: 'var(--color-text-2)' }} />
+        key: 'seed'
       },
       {
         type: 'title',

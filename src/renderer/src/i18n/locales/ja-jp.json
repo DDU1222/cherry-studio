@@ -680,6 +680,9 @@
       "style_type": "スタイル",
       "learn_more": "詳しくはこちら",
       "prompt_placeholder_edit": "画像の説明を入力します。テキスト描画には '二重引用符' を使用します",
+      "proxy_required": "現在、プロキシを開く必要があります。これは、将来サポートされる予定です",
+      "image_file_required": "画像を先にアップロードしてください",
+      "image_file_retry": "画像を先にアップロードしてください",
       "mode": {
         "generate": "画像生成",
         "edit": "部分編集",

@@ -181,7 +181,7 @@ export interface GeneratePainting extends PaintingParams {
 }
 
 export interface EditPainting extends PaintingParams {
-  imageFile: FileType
+  imageFile: string
   mask: FileType
   model: string
   prompt: string
@@ -192,7 +192,7 @@ export interface EditPainting extends PaintingParams {
 }
 
 export interface RemixPainting extends PaintingParams {
-  imageFile: FileType
+  imageFile: string
   model: string
   prompt: string
   aspectRatio?: string
@@ -205,7 +205,7 @@ export interface RemixPainting extends PaintingParams {
 }
 
 export interface ScalePainting extends PaintingParams {
-  imageFile: FileType
+  imageFile: string
   prompt: string
   resemblance?: number
   detail?: number

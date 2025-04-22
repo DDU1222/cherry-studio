@@ -18,7 +18,11 @@ const paintingsSlice = createSlice({
       action: PayloadAction<{ namespace?: keyof PaintingsState; painting: PaintingAction }>
     ) => {
       const { namespace = 'paintings', painting } = action.payload
-      state[namespace].unshift(painting as any)
+      if (state[namespace]) {
+        state[namespace].unshift(painting)
+      } else {
+        state[namespace] = [painting]
+      }
     },
     removePainting: (
       state: PaintingsState,

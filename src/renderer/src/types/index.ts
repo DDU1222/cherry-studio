@@ -214,15 +214,15 @@ export interface ScalePainting extends PaintingParams {
   magicPromptOption?: boolean
 }
 
+export type PaintingAction = Partial<GeneratePainting & RemixPainting & EditPainting & ScalePainting> & PaintingParams
+
 export interface PaintingsState {
   paintings: Painting[]
-  generate: GeneratePainting[]
-  remix: RemixPainting[]
-  edit: EditPainting[]
-  upscale: ScalePainting[]
+  generate: Partial<GeneratePainting> & PaintingParams[]
+  remix: Partial<RemixPainting> & PaintingParams[]
+  edit: Partial<EditPainting> & PaintingParams[]
+  upscale: Partial<ScalePainting> & PaintingParams[]
 }
-
-export type PaintingAction = Partial<GeneratePainting & RemixPainting & EditPainting & ScalePainting> & PaintingParams
 
 export type MinAppType = {
   id: string

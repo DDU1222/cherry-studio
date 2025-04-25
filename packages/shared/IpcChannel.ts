@@ -12,11 +12,15 @@ export enum IpcChannel {
   App_SetTrayOnClose = 'app:set-tray-on-close',
   App_RestartTray = 'app:restart-tray',
   App_SetTheme = 'app:set-theme',
+  App_SetCustomCss = 'app:set-custom-css',
+  App_SetAutoUpdate = 'app:set-auto-update',
 
   App_IsBinaryExist = 'app:is-binary-exist',
   App_GetBinaryPath = 'app:get-binary-path',
   App_InstallUvBinary = 'app:install-uv-binary',
   App_InstallBunBinary = 'app:install-bun-binary',
+
+  Webview_SetOpenLinkExternal = 'webview:set-open-link-external',
 
   // Open
   Open_Path = 'open:path',
@@ -39,6 +43,10 @@ export enum IpcChannel {
   Mcp_StopServer = 'mcp:stop-server',
   Mcp_ListTools = 'mcp:list-tools',
   Mcp_CallTool = 'mcp:call-tool',
+  Mcp_ListPrompts = 'mcp:list-prompts',
+  Mcp_GetPrompt = 'mcp:get-prompt',
+  Mcp_ListResources = 'mcp:list-resources',
+  Mcp_GetResource = 'mcp:get-resource',
   Mcp_GetInstallInfo = 'mcp:get-install-info',
   Mcp_ServersChanged = 'mcp:servers-changed',
   Mcp_ServersUpdated = 'mcp:servers-updated',
@@ -116,6 +124,7 @@ export enum IpcChannel {
   Backup_ListWebdavFiles = 'backup:listWebdavFiles',
   Backup_CheckConnection = 'backup:checkConnection',
   Backup_CreateDirectory = 'backup:createDirectory',
+  Backup_DeleteWebdavFile = 'backup:deleteWebdavFile',
 
   // zip
   Zip_Compress = 'zip:compress',
@@ -123,6 +132,7 @@ export enum IpcChannel {
 
   // system
   System_GetDeviceType = 'system:getDeviceType',
+  System_GetHostname = 'system:getHostname',
 
   // events
   SelectionAction = 'selection-action',
@@ -146,5 +156,10 @@ export enum IpcChannel {
   MiniWindowReload = 'miniwindow-reload',
 
   ReduxStateChange = 'redux-state-change',
-  ReduxStoreReady = 'redux-store-ready'
+  ReduxStoreReady = 'redux-store-ready',
+
+  // Search Window
+  SearchWindow_Open = 'search-window:open',
+  SearchWindow_Close = 'search-window:close',
+  SearchWindow_OpenUrl = 'search-window:open-url'
 }

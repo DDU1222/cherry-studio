@@ -56,11 +56,11 @@
       "settings.preset_messages": "預設訊息",
       "settings.prompt": "提示詞設定",
       "settings.reasoning_effort": "思維鏈長度",
-      "settings.reasoning_effort.high": "長",
-      "settings.reasoning_effort.low": "短",
-      "settings.reasoning_effort.medium": "中",
-      "settings.reasoning_effort.off": "關",
-      "settings.reasoning_effort.tip": "僅支援 OpenAI o-series、Anthropic 和 Grok 推理模型",
+      "settings.reasoning_effort.off": "關閉",
+      "settings.reasoning_effort.high": "盡力思考",
+      "settings.reasoning_effort.low": "稍微思考",
+      "settings.reasoning_effort.medium": "正常思考",
+      "settings.reasoning_effort.default": "預設",
       "settings.more": "助手設定"
     },
     "auth": {
@@ -100,7 +100,7 @@
       "artifacts.button.preview": "預覽",
       "artifacts.preview.openExternal.error.content": "外部瀏覽器開啟出錯",
       "assistant.search.placeholder": "搜尋",
-      "deeply_thought": "已深度思考（用時 {{secounds}} 秒）",
+      "deeply_thought": "已深度思考（用時 {{seconds}} 秒）",
       "default.description": "你好，我是預設助手。你可以立即開始與我聊天。",
       "default.name": "預設助手",
       "default.topic.name": "預設話題",
@@ -136,7 +136,7 @@
       "input.translate": "翻譯成{{target_language}}",
       "input.upload": "上傳圖片或文件",
       "input.upload.document": "上傳文件（模型不支援圖片）",
-      "input.web_search": "開啟網路搜尋",
+      "input.web_search": "網路搜尋",
       "input.web_search.button.ok": "去設定",
       "input.web_search.enable": "開啟網路搜尋",
       "input.web_search.enable_content": "需要先在設定中開啟網路搜尋",
@@ -185,7 +185,7 @@
       "settings.top_p": "Top-P",
       "settings.top_p.tip": "模型生成文字的隨機程度。值越小，AI 生成的內容越單調，也越容易理解；值越大，AI 回覆的詞彙範圍越大，越多樣化",
       "suggestions.title": "建議的問題",
-      "thinking": "思考中",
+      "thinking": "思考中（用時 {{seconds}} 秒）",
       "topics.auto_rename": "自動重新命名",
       "topics.clear.title": "清空訊息",
       "topics.copy.image": "複製為圖片",
@@ -247,7 +247,17 @@
       "topics.export.title_naming_success": "標題生成成功",
       "topics.export.title_naming_failed": "標題生成失敗，使用預設標題",
       "input.translating": "翻譯中...",
-      "input.upload.upload_from_local": "上傳本地文件..."
+      "input.upload.upload_from_local": "上傳本地文件...",
+      "input.web_search.builtin": "模型內置",
+      "input.web_search.builtin.enabled_content": "使用模型內置的網路搜尋功能",
+      "input.web_search.builtin.disabled_content": "當前模型不支持網路搜尋功能",
+      "input.thinking": "思考",
+      "input.thinking.mode.default": "預設",
+      "input.thinking.mode.default.tip": "模型會自動確定思考的 token 數",
+      "input.thinking.mode.custom": "自定義",
+      "input.thinking.mode.custom.tip": "模型最多可以思考的 token 數。需要考慮模型的上下文限制，否則會報錯",
+      "input.thinking.mode.tokens.tip": "設置思考的 token 數",
+      "input.thinking.budget_exceeds_max": "思考預算超過最大 token 數"
     },
     "code_block": {
       "collapse": "折疊",
@@ -332,7 +342,8 @@
         "title": "渲染錯誤"
       },
       "user_message_not_found": "無法找到原始用戶訊息",
-      "unknown": "未知錯誤"
+      "unknown": "未知錯誤",
+      "pause_placeholder": "回應已暫停"
     },
     "export": {
       "assistant": "助手",
@@ -545,6 +556,7 @@
       "message.style": "訊息樣式",
       "message.style.bubble": "氣泡",
       "message.style.plain": "簡潔",
+      "processing": "正在處理...",
       "regenerate.confirm": "重新生成會覆蓋目前訊息",
       "reset.confirm.content": "確定要清除所有資料嗎？",
       "reset.double.confirm.content": "所有資料將會被清除，您確定要繼續嗎？",
@@ -1102,6 +1114,7 @@
       "general.user_name.placeholder": "輸入您的名稱",
       "general.view_webdav_settings": "檢視 WebDAV 設定",
       "input.auto_translate_with_space": "快速敲擊 3 次空格翻譯",
+      "input.show_translate_confirm": "顯示翻譯確認對話框",
       "input.target_language": "目標語言",
       "input.target_language.chinese": "簡體中文",
       "input.target_language.chinese-traditional": "繁體中文",
@@ -1221,7 +1234,32 @@
           "sse": "SSE",
           "streamableHttp": "流式",
           "stdio": "STDIO"
-        }
+        },
+        "sync": {
+          "title": "同步伺服器",
+          "selectProvider": "選擇提供者：",
+          "discoverMcpServers": "發現MCP伺服器",
+          "discoverMcpServersDescription": "訪問平台以發現可用的MCP伺服器",
+          "getToken": "獲取 API 令牌",
+          "getTokenDescription": "從您的帳戶獲取個人 API 令牌",
+          "setToken": "輸入您的令牌",
+          "tokenRequired": "需要 API 令牌",
+          "tokenPlaceholder": "在此輸入 API 令牌",
+          "button": "同步",
+          "error": "同步MCP伺服器出錯",
+          "success": "同步MCP伺服器成功",
+          "unauthorized": "同步未授權",
+          "noServersAvailable": "無可用的 MCP 伺服器"
+        },
+        "timeout": "超時",
+        "timeoutTooltip": "對該伺服器請求的超時時間（秒），預設為60秒",
+        "provider": "提供者",
+        "providerUrl": "提供者網址",
+        "logoUrl": "標誌網址",
+        "tags": "標籤",
+        "tagsPlaceholder": "輸入標籤",
+        "providerPlaceholder": "提供者名稱",
+        "advancedSettings": "高級設定"
       },
       "messages.divider": "訊息間顯示分隔線",
       "messages.grid_columns": "訊息網格展示列數",
@@ -1308,10 +1346,16 @@
         "basic_auth.user_name.tip": "留空以停用",
         "basic_auth.password": "密碼",
         "basic_auth.password.tip": "",
-        "charge": "儲值",
+        "charge": "餘額充值",
+        "bills": "費用帳單",
         "check": "檢查",
         "check_all_keys": "檢查所有金鑰",
         "check_multiple_keys": "檢查多個 API 金鑰",
+        "oauth": {
+          "button": "使用{{provider}}帳號登入",
+          "description": "本服務由<website>{{provider}}</website>提供",
+          "official_website": "官方網站"
+        },
         "copilot": {
           "auth_failed": "Github Copilot認證失敗",
           "auth_success": "Github Copilot 認證成功",
@@ -1348,7 +1392,12 @@
         "remove_invalid_keys": "刪除無效金鑰",
         "search": "搜尋模型平臺...",
         "search_placeholder": "搜尋模型 ID 或名稱",
-        "title": "模型提供者"
+        "title": "模型提供者",
+        "notes": {
+          "title": "模型備註",
+          "placeholder": "輸入Markdown格式內容...",
+          "markdown_editor_default_value": "預覽區域"
+        }
       },
       "proxy": {
         "mode": {

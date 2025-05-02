@@ -55,12 +55,11 @@
       "settings.model": "Настройки модели",
       "settings.preset_messages": "Предустановленные сообщения",
       "settings.prompt": "Настройки промптов",
-      "settings.reasoning_effort": "Длина цепочки рассуждений",
-      "settings.reasoning_effort.high": "Длинная",
-      "settings.reasoning_effort.low": "Короткая",
-      "settings.reasoning_effort.medium": "Средняя",
-      "settings.reasoning_effort.off": "Выключено",
-      "settings.reasoning_effort.tip": "Поддерживается только моделями рассуждений OpenAI o-series, Anthropic и Grok",
+      "settings.reasoning_effort.off": "Выключить",
+      "settings.reasoning_effort.high": "Стараюсь думать",
+      "settings.reasoning_effort.low": "Меньше думать",
+      "settings.reasoning_effort.medium": "Среднее",
+      "settings.reasoning_effort.default": "По умолчанию",
       "settings.more": "Настройки ассистента"
     },
     "auth": {
@@ -100,7 +99,7 @@
       "artifacts.button.preview": "Предпросмотр",
       "artifacts.preview.openExternal.error.content": "Внешний браузер открылся с ошибкой",
       "assistant.search.placeholder": "Поиск",
-      "deeply_thought": "Мыслим ({{secounds}} секунд)",
+      "deeply_thought": "Мыслим ({{seconds}} секунд)",
       "default.description": "Привет, я Ассистент по умолчанию. Вы можете начать общаться со мной прямо сейчас",
       "default.name": "Ассистент по умолчанию",
       "default.topic.name": "Топик по умолчанию",
@@ -136,7 +135,7 @@
       "input.translate": "Перевести на {{target_language}}",
       "input.upload": "Загрузить изображение или документ",
       "input.upload.document": "Загрузить документ (модель не поддерживает изображения)",
-      "input.web_search": "Включить веб-поиск",
+      "input.web_search": "Веб-поиск",
       "input.web_search.button.ok": "Перейти в Настройки",
       "input.web_search.enable": "Включить веб-поиск",
       "input.web_search.enable_content": "Необходимо предварительно проверить подключение к веб-поиску в настройках",
@@ -185,7 +184,7 @@
       "settings.top_p": "Top-P",
       "settings.top_p.tip": "Значение по умолчанию 1, чем меньше значение, тем меньше вариативности в ответах, тем проще понять, чем больше значение, тем больше вариативности в ответах, тем больше разнообразие",
       "suggestions.title": "Предложенные вопросы",
-      "thinking": "Мыслим",
+      "thinking": "Мыслим ({{seconds}} секунд)",
       "topics.auto_rename": "Автопереименование",
       "topics.clear.title": "Очистить сообщения",
       "topics.copy.image": "Скопировать как изображение",
@@ -247,7 +246,17 @@
       "topics.export.title_naming_success": "Заголовок успешно создан",
       "topics.export.title_naming_failed": "Не удалось создать заголовок, используется заголовок по умолчанию",
       "input.translating": "Перевод...",
-      "input.upload.upload_from_local": "Загрузить локальный файл..."
+      "input.upload.upload_from_local": "Загрузить локальный файл...",
+      "input.web_search.builtin": "Модель встроена",
+      "input.web_search.builtin.enabled_content": "Используйте встроенную функцию веб-поиска модели",
+      "input.web_search.builtin.disabled_content": "Текущая модель не поддерживает веб-поиск",
+      "input.thinking": "Мыслим",
+      "input.thinking.mode.default": "По умолчанию",
+      "input.thinking.mode.default.tip": "Модель автоматически определяет количество токенов для размышления",
+      "input.thinking.mode.custom": "Пользовательский",
+      "input.thinking.mode.custom.tip": "Модель может максимально размышлять количество токенов. Необходимо учитывать ограничение контекста модели, иначе будет ошибка",
+      "input.thinking.mode.tokens.tip": "Установите количество токенов для размышления",
+      "input.thinking.budget_exceeds_max": "Бюджет размышления превышает максимальное количество токенов"
     },
     "code_block": {
       "collapse": "Свернуть",
@@ -332,7 +341,8 @@
         "title": "Ошибка рендеринга"
       },
       "user_message_not_found": "Не удалось найти исходное сообщение пользователя",
-      "unknown": "Неизвестная ошибка"
+      "unknown": "Неизвестная ошибка",
+      "pause_placeholder": "Получение ответа приостановлено"
     },
     "export": {
       "assistant": "Ассистент",
@@ -545,6 +555,7 @@
       "message.style": "Стиль сообщения",
       "message.style.bubble": "Пузырь",
       "message.style.plain": "Простой",
+      "processing": "Обрабатывается...",
       "regenerate.confirm": "Перегенерация заменит текущее сообщение",
       "reset.confirm.content": "Вы уверены, что хотите очистить все данные?",
       "reset.double.confirm.content": "Все данные будут утеряны, хотите продолжить?",
@@ -1221,7 +1232,32 @@
           "sse": "SSE",
           "streamableHttp": "Потоковый HTTP",
           "stdio": "STDIO"
-        }
+        },
+        "sync": {
+          "title": "Синхронизация серверов",
+          "selectProvider": "Выберите провайдера:",
+          "discoverMcpServers": "Обнаружить серверы MCP",
+          "discoverMcpServersDescription": "Посетите платформу, чтобы обнаружить доступные серверы MCP",
+          "getToken": "Получить API токен",
+          "getTokenDescription": "Получите персональный API токен из вашей учетной записи",
+          "setToken": "Введите ваш токен",
+          "tokenRequired": "Требуется API токен",
+          "tokenPlaceholder": "Введите API токен здесь",
+          "button": "Синхронизировать",
+          "error": "Ошибка синхронизации серверов MCP",
+          "success": "Синхронизация серверов MCP успешна",
+          "unauthorized": "Синхронизация не разрешена",
+          "noServersAvailable": "Нет доступных серверов MCP"
+        },
+        "timeout": "Тайм-аут",
+        "timeoutTooltip": "Тайм-аут в секундах для запросов к этому серверу, по умолчанию 60 секунд",
+        "provider": "Провайдер",
+        "providerUrl": "URL провайдера",
+        "logoUrl": "URL логотипа",
+        "tags": "Теги",
+        "tagsPlaceholder": "Введите теги",
+        "providerPlaceholder": "Имя провайдера",
+        "advancedSettings": "Расширенные настройки"
       },
       "messages.divider": "Показывать разделитель между сообщениями",
       "messages.grid_columns": "Количество столбцов сетки сообщений",
@@ -1308,10 +1344,16 @@
         "basic_auth.user_name.tip": "Оставить пустым для отключения",
         "basic_auth.password": "Пароль",
         "basic_auth.password.tip": "",
-        "charge": "Пополнить",
+        "charge": "Пополнить баланс",
+        "bills": "Счета за услуги",
         "check": "Проверить",
         "check_all_keys": "Проверить все ключи",
         "check_multiple_keys": "Проверить несколько ключей API",
+        "oauth": {
+          "button": "Войти с {{provider}}",
+          "description": "Сервис предоставляется <website>{{provider}}</website>",
+          "official_website": "Официальный сайт"
+        },
         "copilot": {
           "auth_failed": "Github Copilot认证失败",
           "auth_success": "Github Copilot认证成功",
@@ -1348,7 +1390,12 @@
         "remove_invalid_keys": "Удалить недействительные ключи",
         "search": "Поиск поставщиков...",
         "search_placeholder": "Поиск по ID или имени модели",
-        "title": "Провайдеры моделей"
+        "title": "Провайдеры моделей",
+        "notes": {
+          "title": "Заметки модели",
+          "placeholder": "Введите содержимое в формате Markdown...",
+          "markdown_editor_default_value": "Область предварительного просмотра"
+        }
       },
       "proxy": {
         "mode": {
@@ -1466,7 +1513,8 @@
       "privacy": {
         "title": "Настройки приватности",
         "enable_privacy_mode": "Анонимная отправка отчетов об ошибках и статистики"
-      }
+      },
+      "input.show_translate_confirm": "Показать диалоговое окно подтверждения перевода"
     },
     "translate": {
       "any.language": "Любой язык",

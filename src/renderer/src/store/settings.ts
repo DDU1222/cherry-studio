@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
 import { CodeStyleVarious, LanguageVarious, MathEngine, ThemeMode, TranslateLanguageVarious } from '@renderer/types'
-import { IpcChannel } from '@shared/IpcChannel'
 
 import { WebDAVSyncState } from './backup'
 
@@ -75,6 +74,7 @@ export interface SettingsState {
   webdavMaxBackups: number
   translateModelPrompt: string
   autoTranslateWithSpace: boolean
+  showTranslateConfirm: boolean
   enableTopicNaming: boolean
   customCss: string
   topicNamingPrompt: string
@@ -149,7 +149,7 @@ export const initialState: SettingsState = {
   trayOnClose: true,
   tray: true,
   theme: ThemeMode.auto,
-  windowStyle: 'transparent',
+  windowStyle: 'opaque',
   fontSize: 14,
   topicPosition: 'left',
   showTopicTime: false,
@@ -182,6 +182,7 @@ export const initialState: SettingsState = {
   webdavMaxBackups: 0,
   translateModelPrompt: TRANSLATE_PROMPT,
   autoTranslateWithSpace: false,
+  showTranslateConfirm: true,
   enableTopicNaming: true,
   customCss: '',
   topicNamingPrompt: '',
@@ -254,7 +255,6 @@ const settingsSlice = createSlice({
     },
     setLanguage: (state, action: PayloadAction<LanguageVarious>) => {
       state.language = action.payload
-      window.electron.ipcRenderer.send(IpcChannel.MiniWindowReload)
     },
     setTargetLanguage: (state, action: PayloadAction<TranslateLanguageVarious>) => {
       state.targetLanguage = action.payload
@@ -387,6 +387,9 @@ const settingsSlice = createSlice({
     },
     setAutoTranslateWithSpace: (state, action: PayloadAction<boolean>) => {
       state.autoTranslateWithSpace = action.payload
+    },
+    setShowTranslateConfirm: (state, action: PayloadAction<boolean>) => {
+      state.showTranslateConfirm = action.payload
     },
     setEnableTopicNaming: (state, action: PayloadAction<boolean>) => {
       state.enableTopicNaming = action.payload
@@ -554,6 +557,7 @@ export const {
   setCodeStyle,
   setTranslateModelPrompt,
   setAutoTranslateWithSpace,
+  setShowTranslateConfirm,
   setEnableTopicNaming,
   setPasteLongTextThreshold,
   setCustomCss,

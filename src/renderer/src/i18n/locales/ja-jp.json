@@ -1290,6 +1290,7 @@
       "models.add.group_name.tooltip": "例：ChatGPT",
       "models.add.model_id": "モデルID",
       "models.add.model_id.placeholder": "必須 例：gpt-3.5-turbo",
+      "models.add.model_id.select.placeholder": "モデルを選択",
       "models.add.model_id.tooltip": "例：gpt-3.5-turbo",
       "models.add.model_name": "モデル名",
       "models.add.model_name.placeholder": "例：GPT-3.5",

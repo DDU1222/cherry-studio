@@ -1320,6 +1320,7 @@
       "models.add.group_name.tooltip": "Optional e.g. ChatGPT",
       "models.add.model_id": "Model ID",
       "models.add.model_id.placeholder": "Required e.g. gpt-3.5-turbo",
+      "models.add.model_id.select.placeholder": "Select Model",
       "models.add.model_id.tooltip": "Example: gpt-3.5-turbo",
       "models.add.model_name": "Model Name",
       "models.add.model_name.placeholder": "Optional e.g. GPT-4",

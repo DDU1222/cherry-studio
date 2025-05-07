@@ -1320,6 +1320,7 @@
       "models.add.group_name.tooltip": "例如 ChatGPT",
       "models.add.model_id": "模型 ID",
       "models.add.model_id.placeholder": "必填 例如 gpt-3.5-turbo",
+      "models.add.model_id.select.placeholder": "选择模型",
       "models.add.model_id.tooltip": "例如 gpt-3.5-turbo",
       "models.add.model_name": "模型名称",
       "models.add.model_name.placeholder": "例如 GPT-3.5",

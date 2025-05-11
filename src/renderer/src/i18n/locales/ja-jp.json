@@ -773,6 +773,8 @@
       "proxy_required": "現在、プロキシを開く必要があります。これは、将来サポートされる予定です",
       "image_file_required": "画像を先にアップロードしてください",
       "image_file_retry": "画像を先にアップロードしてください",
+      "image_placeholder": "画像がありません",
+      "image_retry": "再試行",
       "mode": {
         "generate": "画像生成",
         "edit": "部分編集",

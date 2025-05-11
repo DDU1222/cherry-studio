@@ -25,6 +25,9 @@
           "invalid_format": "无效的代理格式：缺少必填字段"
         }
       },
+      "export": {
+        "agent": "导出智能体"
+      },
       "delete.popup.content": "确定要删除此智能体吗？",
       "edit.message.add.title": "添加",
       "edit.message.assistant.placeholder": "输入助手消息",
@@ -81,7 +84,18 @@
       "settings.reasoning_effort.medium": "斟酌",
       "settings.reasoning_effort.high": "沉思",
       "settings.reasoning_effort.default": "默认",
-      "settings.more": "助手设置"
+      "settings.more": "助手设置",
+      "settings.regular_phrases": {
+        "title": "常用短语",
+        "add": "添加短语",
+        "edit": "编辑短语",
+        "delete": "删除短语",
+        "deleteConfirm": "确定要删除这个短语吗？",
+        "titleLabel": "标题",
+        "titlePlaceholder": "输入标题",
+        "contentLabel": "内容",
+        "contentPlaceholder": "请输入短语内容，支持使用变量，然后按Tab键可以快速定位到变量进行修改。比如：\n帮我规划从${from}到${to}的路线，然后发送到${email}。"
+      }
     },
     "auth": {
       "error": "自动获取密钥失败，请手动获取",
@@ -301,6 +315,7 @@
       "confirm": "确认",
       "copied": "已复制",
       "copy": "复制",
+      "inspect": "检查",
       "cut": "剪切",
       "default": "默认",
       "delete": "删除",
@@ -616,7 +631,9 @@
       "error.siyuan.no_config": "未配置思源笔记API地址或令牌",
       "success.siyuan.export": "导出到思源笔记成功",
       "warn.yuque.exporting": "正在导出语雀, 请勿重复请求导出!",
-      "warn.siyuan.exporting": "正在导出到思源笔记，请勿重复请求导出!"
+      "warn.siyuan.exporting": "正在导出到思源笔记，请勿重复请求导出!",
+      "download.success": "下载成功",
+      "download.failed": "下载失败"
     },
     "minapp": {
       "popup": {
@@ -629,11 +646,26 @@
         "open_link_external_on": "当前：在浏览器中打开链接",
         "open_link_external_off": "当前：使用默认窗口打开链接"
       },
-      "sidebar.add.title": "添加到侧边栏",
-      "sidebar.remove.title": "从侧边栏移除",
-      "sidebar.close.title": "关闭",
-      "sidebar.closeall.title": "全部关闭",
-      "sidebar.hide.title": "隐藏小程序",
+      "sidebar": {
+        "add": {
+          "title": "添加到侧边栏"
+        },
+        "remove": {
+          "title": "从侧边栏移除"
+        },
+        "remove_custom": {
+          "title": "删除自定义应用"
+        },
+        "hide": {
+          "title": "隐藏"
+        },
+        "close": {
+          "title": "关闭"
+        },
+        "closeall": {
+          "title": "关闭所有"
+        }
+      },
       "title": "小程序"
     },
     "miniwindow": {
@@ -684,9 +716,11 @@
       "pinned": "已固定",
       "rerank_model": "重排模型",
       "rerank_model_support_provider": "目前重排序模型仅支持部分服务商 ({{provider}})",
+      "rerank_model_not_support_provider": "目前重排序模型不支持该服务商 ({{provider}})",
       "rerank_model_tooltip": "在设置->模型服务中点击管理按钮添加",
       "search": "搜索模型...",
       "stream_output": "流式输出",
+      "enable_tool_use": "工具调用",
       "type": {
         "embedding": "嵌入",
         "free": "免费",
@@ -1117,6 +1151,37 @@
         "open_link_external": {
           "title": "在浏览器中打开新窗口链接"
         },
+        "custom": {
+          "title": "自定义小程序",
+          "edit_title": "编辑自定义小程序",
+          "save_success": "自定义小程序保存成功。",
+          "save_error": "自定义小程序保存失败。",
+          "remove_success": "自定义小程序删除成功。",
+          "remove_error": "自定义小程序删除失败。",
+          "logo_upload_success": "Logo 上传成功。",
+          "logo_upload_error": "Logo 上传失败。",
+          "id": "ID",
+          "id_error": "ID 是必填项。",
+          "id_placeholder": "请输入 ID",
+          "name": "名称",
+          "name_error": "名称是必填项。",
+          "name_placeholder": "请输入名称",
+          "url": "URL",
+          "url_error": "URL 是必填项。",
+          "url_placeholder": "请输入 URL",
+          "logo": "Logo",
+          "logo_url": "Logo URL",
+          "logo_file": "上传 Logo 文件",
+          "logo_url_label": "Logo URL",
+          "logo_url_placeholder": "请输入 Logo URL",
+          "logo_upload_label": "上传 Logo",
+          "logo_upload_button": "上传",
+          "save": "保存",
+          "edit_description": "在这里编辑自定义小应用的配置。每个应用需要包含 id、name、url 和 logo 字段。",
+          "placeholder": "请输入自定义小程序配置（JSON格式）",
+          "duplicate_ids": "发现重复的ID: {{ids}}",
+          "conflicting_ids": "与默认应用ID冲突: {{ids}}"
+        },
         "cache_settings": "缓存设置",
         "cache_title": "小程序缓存数量",
         "cache_description": "设置同时保持活跃状态的小程序最大数量",
@@ -1290,6 +1355,7 @@
         "providerPlaceholder": "提供者名称",
         "advancedSettings": "高级设置"
       },
+      "messages.prompt": "显示提示词",
       "messages.divider": "消息分割线",
       "messages.grid_columns": "消息网格展示列数",
       "messages.grid_popover_trigger": "网格详情触发",
@@ -1332,7 +1398,10 @@
       "models.check.enabled": "开启",
       "models.check.failed": "失败",
       "models.check.keys_status_count": "通过：{{count_passed}}个密钥，失败：{{count_failed}}个密钥",
-      "models.check.model_status_summary": "{{provider}}: {{count_passed}} 个模型完成健康检测（其中 {{count_partial}} 个模型用某些密钥无法访问），{{count_failed}} 个模型完全无法访问。",
+      "models.check.model_status_failed": "{{count}} 个模型完全无法访问",
+      "models.check.model_status_partial": "其中 {{count}} 个模型用某些密钥无法访问",
+      "models.check.model_status_passed": "{{count}} 个模型通过健康检测",
+      "models.check.model_status_summary": "{{provider}}: {{summary}}",
       "models.check.no_api_keys": "未找到API密钥，请先添加API密钥。",
       "models.check.passed": "通过",
       "models.check.select_api_key": "选择要使用的API密钥：",
@@ -1344,6 +1413,8 @@
       "models.default_assistant_model_description": "创建新助手时使用的模型，如果助手未设置模型，则使用此模型",
       "models.empty": "没有模型",
       "models.enable_topic_naming": "话题自动重命名",
+      "models.manage.add_listed": "添加列表中的模型",
+      "models.manage.remove_listed": "移除列表中的模型",
       "models.manage.add_whole_group": "添加整个分组",
       "models.manage.remove_whole_group": "移除整个分组",
       "models.topic_naming_model": "话题命名模型",
@@ -1529,7 +1600,10 @@
         "titlePlaceholder": "请输入短语标题",
         "contentPlaceholder": "请输入短语内容，支持使用变量，然后按Tab键可以快速定位到变量进行修改。比如：\n帮我规划从${from}到${to}的路线，然后发送到${email}。",
         "delete": "删除短语",
-        "deleteConfirm": "删除短语后将无法恢复，是否继续？"
+        "deleteConfirm": "删除短语后将无法恢复，是否继续？",
+        "locationLabel": "添加位置",
+        "global": "全局短语",
+        "assistant": "助手短语"
       },
       "quickPanel": {
         "title": "快捷菜单",
@@ -1544,12 +1618,20 @@
       "privacy": {
         "title": "隐私设置",
         "enable_privacy_mode": "匿名发送错误报告和数据统计"
+      },
+      "zoom": {
+        "title": "缩放",
+        "reset": "重置"
       }
     },
     "translate": {
       "any.language": "任意语言",
       "button.translate": "翻译",
       "close": "关闭",
+      "closed": "翻译已关闭",
+      "copied": "翻译内容已复制",
+      "empty": "翻译内容为空",
+      "not.found": "未找到翻译内容",
       "confirm": {
         "content": "翻译后将覆盖原文，是否继续？",
         "title": "翻译确认"

@@ -16,6 +16,9 @@ export default class ProviderFactory {
         }
         return new OpenAIProvider(provider)
       case 'openai-compatible':
+        if (provider.id === 'aihubmix') {
+          return new AihubmixProvider(provider)
+        }
         return new OpenAICompatibleProvider(provider)
       case 'anthropic':
         return new AnthropicProvider(provider)

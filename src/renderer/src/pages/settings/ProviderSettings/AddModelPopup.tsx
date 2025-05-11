@@ -1,10 +1,9 @@
-import { LoadingOutlined } from '@ant-design/icons'
 import { TopView } from '@renderer/components/TopView'
 import { useProvider } from '@renderer/hooks/useProvider'
 import { fetchModels } from '@renderer/services/ApiService'
 import { Model, Provider } from '@renderer/types'
 import { getDefaultGroupName, runAsyncFunction } from '@renderer/utils'
-import { Button, Flex, Form, FormProps, Input, Modal, Select, Spin } from 'antd'
+import { Button, Flex, Form, FormProps, Input, Modal } from 'antd'
 import { find } from 'lodash'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -115,6 +114,7 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
       maskClosable={false}
       afterClose={onClose}
       footer={null}
+      transitionName="animation-move-down"
       centered>
       <Form
         form={form}
@@ -123,67 +123,40 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
         colon={false}
         style={{ marginTop: 25 }}
         onFinish={onFinish}>
-        {loading ? (
-          <Flex justify="center" align="center" style={{ width: '100%', height: 100 }}>
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+        <Form.Item
+          name="id"
+          label={t('settings.models.add.model_id')}
+          tooltip={t('settings.models.add.model_id.tooltip')}
+          rules={[{ required: true }]}>
+          <Input
+            placeholder={t('settings.models.add.model_id.placeholder')}
+            spellCheck={false}
+            maxLength={200}
+            onChange={(e) => {
+              form.setFieldValue('name', e.target.value)
+              form.setFieldValue('group', getDefaultGroupName(e.target.value, provider.id))
+            }}
+          />
+        </Form.Item>
+        <Form.Item
+          name="name"
+          label={t('settings.models.add.model_name')}
+          tooltip={t('settings.models.add.model_name.placeholder')}>
+          <Input placeholder={t('settings.models.add.model_name.placeholder')} spellCheck={false} />
+        </Form.Item>
+        <Form.Item
+          name="group"
+          label={t('settings.models.add.group_name')}
+          tooltip={t('settings.models.add.group_name.tooltip')}>
+          <Input placeholder={t('settings.models.add.group_name.placeholder')} spellCheck={false} />
+        </Form.Item>
+        <Form.Item style={{ marginBottom: 0, textAlign: 'center' }}>
+          <Flex justify="end" align="center" style={{ position: 'relative' }}>
+            <Button type="primary" htmlType="submit" size="middle">
+              {t('settings.models.add.add_model')}
+            </Button>
           </Flex>
-        ) : (
-          <>
-            {modelOptions.length > 0 ? (
-              <Form.Item
-                name="id"
-                label={t('settings.models.add.model_id')}
-                tooltip={t('settings.models.add.model_id.tooltip')}
-                rules={[{ required: true }]}>
-                <Select
-                  options={modelOptions}
-                  showSearch
-                  placeholder={t('settings.models.add.model_id.select.placeholder')}
-                  onChange={(value) => {
-                    form.setFieldValue('group', getDefaultGroupName(value))
-                  }}
-                />
-              </Form.Item>
-            ) : (
-              <>
-                <Form.Item
-                  name="id"
-                  label={t('settings.models.add.model_id')}
-                  tooltip={t('settings.models.add.model_id.tooltip')}
-                  rules={[{ required: true }]}>
-                  <Input
-                    placeholder={t('settings.models.add.model_id.placeholder')}
-                    spellCheck={false}
-                    maxLength={200}
-                    onChange={(e) => {
-                      form.setFieldValue('name', e.target.value)
-                      form.setFieldValue('group', getDefaultGroupName(e.target.value))
-                    }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="name"
-                  label={t('settings.models.add.model_name')}
-                  tooltip={t('settings.models.add.model_name.placeholder')}>
-                  <Input placeholder={t('settings.models.add.model_name.placeholder')} spellCheck={false} />
-                </Form.Item>
-              </>
-            )}
-            <Form.Item
-              name="group"
-              label={t('settings.models.add.group_name')}
-              tooltip={t('settings.models.add.group_name.tooltip')}>
-              <Input placeholder={t('settings.models.add.group_name.placeholder')} spellCheck={false} />
-            </Form.Item>
-            <Form.Item style={{ marginBottom: 0, textAlign: 'center' }}>
-              <Flex justify="end" align="center" style={{ position: 'relative' }}>
-                <Button type="primary" htmlType="submit" size="middle">
-                  {t('settings.models.add.add_model')}
-                </Button>
-              </Flex>
-            </Form.Item>
-          </>
-        )}
+        </Form.Item>
       </Form>
     </Modal>
   )

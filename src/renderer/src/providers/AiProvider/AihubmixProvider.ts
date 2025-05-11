@@ -25,8 +25,8 @@ export default class AihubmixProvider extends BaseProvider {
 
     // 初始化各个提供商
     this.providers.set('claude', new AnthropicProvider(provider))
-    this.providers.set('openai', new OpenAIProvider(provider))
     this.providers.set('gemini', new GeminiProvider({ ...provider, apiHost: 'https://aihubmix.com/gemini' }))
+    this.providers.set('openai', new OpenAIProvider(provider))
     this.providers.set('default', new OpenAICompatibleProvider(provider))
 
     // 设置默认提供商

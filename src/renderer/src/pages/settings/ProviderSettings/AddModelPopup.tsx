@@ -52,7 +52,7 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
     const model: Model = {
       id,
       provider: provider.id,
-      name: values.name || id.toUpperCase(),
+      name: values.name ? values.name : id.toUpperCase(),
       group: getDefaultGroupName(values.group || id)
     }
 

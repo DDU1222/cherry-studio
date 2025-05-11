@@ -1,11 +1,10 @@
 import { TopView } from '@renderer/components/TopView'
 import { useProvider } from '@renderer/hooks/useProvider'
-import { fetchModels } from '@renderer/services/ApiService'
 import { Model, Provider } from '@renderer/types'
-import { getDefaultGroupName, runAsyncFunction } from '@renderer/utils'
+import { getDefaultGroupName } from '@renderer/utils'
 import { Button, Flex, Form, FormProps, Input, Modal } from 'antd'
 import { find } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface ShowParams {
@@ -29,8 +28,6 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
   const [form] = Form.useForm()
   const { addModel, models } = useProvider(provider.id)
   const { t } = useTranslation()
-  const [modelOptions, setModelOptions] = useState<{ label: string; value: string }[]>([])
-  const [loading, setLoading] = useState(false)
 
   const onOk = () => {
     setOpen(false)
@@ -52,16 +49,10 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
       return
     }
 
-    let name = values.name
-    if (!name) {
-      const model = find(modelOptions, { value: id })
-      name = model?.label || id.toUpperCase()
-    }
-
     const model: Model = {
       id,
       provider: provider.id,
-      name,
+      name: values.name || id.toUpperCase(),
       group: getDefaultGroupName(values.group || id)
     }
 
@@ -84,26 +75,6 @@ const PopupContainer: React.FC<Props> = ({ title, provider, resolve }) => {
       resolve({})
     }
   }
-
-  useEffect(() => {
-    runAsyncFunction(async () => {
-      if (provider.id === 'aihubmix') {
-        try {
-          setLoading(true)
-          const models = await fetchModels(provider)
-          setModelOptions(
-            models.map((model) => ({
-              label: model.id,
-              value: model.id
-            }))
-          )
-          setLoading(false)
-        } catch (error) {
-          setLoading(false)
-        }
-      }
-    })
-  }, [provider])
 
   return (
     <Modal

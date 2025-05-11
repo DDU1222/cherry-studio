@@ -11,9 +11,6 @@ export default class ProviderFactory {
   static create(provider: Provider): BaseProvider {
     switch (provider.type) {
       case 'openai':
-        if (provider.id === 'aihubmix') {
-          return new AihubmixProvider(provider)
-        }
         return new OpenAIProvider(provider)
       case 'openai-compatible':
         if (provider.id === 'aihubmix') {

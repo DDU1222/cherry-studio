@@ -842,6 +842,11 @@
         "turbo": "Быстро",
         "quality": "Качественно"
       },
+      "aspect_ratios": {
+        "square": "Квадрат",
+        "portrait": "Портрет",
+        "landscape": "Пейзаж"
+      },
       "mode": {
         "generate": "Рисование",
         "edit": "Редактирование",

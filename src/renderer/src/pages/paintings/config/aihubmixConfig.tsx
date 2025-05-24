@@ -19,7 +19,14 @@ export type ConfigItem = {
   title?: string
   tooltip?: string
   options?:
-    | Array<{ label: string; value: string | number; icon?: string; onlyV2?: boolean }>
+    | Array<{
+        label: string
+        title?: string
+        value?: string | number
+        icon?: string
+        onlyV2?: boolean
+        options?: Array<{ label: string; value: string | number; icon?: string; onlyV2?: boolean }>
+      }>
     | ((
         config: ConfigItem,
         painting: Partial<PaintingAction>
@@ -47,13 +54,32 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         type: 'select',
         key: 'model',
         options: [
-          { label: 'ideogram_V_3', value: 'V_3' },
-          { label: 'ideogram_V_2', value: 'V_2' },
-          { label: 'ideogram_V_2_TURBO', value: 'V_2_TURBO' },
-          { label: 'ideogram_V_2A', value: 'V_2A' },
-          { label: 'ideogram_V_2A_TURBO', value: 'V_2A_TURBO' },
-          { label: 'ideogram_V_1', value: 'V_1' },
-          { label: 'ideogram_V_1_TURBO', value: 'V_1_TURBO' }
+          {
+            label: 'OpenAI',
+            title: 'OpenAI',
+            options: [
+              { label: 'gpt-image-1', value: 'gpt-image-1' },
+              { label: 'dall-e-3', value: 'dall-e-3' }
+            ]
+          },
+          {
+            label: 'Gemini',
+            title: 'Gemini',
+            options: [{ label: 'gemini-3.0', value: 'gemini-3.0' }]
+          },
+          {
+            label: 'ideogram',
+            title: 'ideogram',
+            options: [
+              { label: 'ideogram_V_3', value: 'V_3' },
+              { label: 'ideogram_V_2', value: 'V_2' },
+              { label: 'ideogram_V_2_TURBO', value: 'V_2_TURBO' },
+              { label: 'ideogram_V_2A', value: 'V_2A' },
+              { label: 'ideogram_V_2A_TURBO', value: 'V_2A_TURBO' },
+              { label: 'ideogram_V_1', value: 'V_1' },
+              { label: 'ideogram_V_1_TURBO', value: 'V_1_TURBO' }
+            ]
+          }
         ]
       },
       { type: 'title', title: 'paintings.rendering_speed', tooltip: 'paintings.generate.rendering_speed_tip' },
@@ -71,11 +97,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
       {
         type: 'select',
         key: 'aspectRatio',
-        options: ASPECT_RATIOS.map((size) => ({
-          label: size.label,
-          value: size.value,
-          icon: size.icon
-        }))
+        options: ASPECT_RATIOS
       },
       {
         type: 'title',
@@ -240,11 +262,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
       {
         type: 'select',
         key: 'aspectRatio',
-        options: ASPECT_RATIOS.map((size) => ({
-          label: size.label,
-          value: size.value,
-          icon: size.icon
-        }))
+        options: ASPECT_RATIOS
       },
       { type: 'title', title: 'paintings.remix.image_weight' },
       {

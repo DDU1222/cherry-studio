@@ -840,6 +840,11 @@
         "turbo": "高速",
         "quality": "高品質"
       },
+      "aspect_ratios": {
+        "square": "正方形",
+        "portrait": "縦図",
+        "landscape": "横図"
+      },
       "mode": {
         "generate": "画像生成",
         "edit": "部分編集",

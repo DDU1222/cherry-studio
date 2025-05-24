@@ -787,6 +787,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         return (
           <Select
             key={index}
+            listHeight={500}
             disabled={isDisabled}
             value={painting[item.key!] || item.initialValue}
             options={selectOptions}
@@ -905,7 +906,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             showUploadList={false}
             listType="picture-card"
             onChange={async ({ file }) => {
-              const path = file.originFileObj?.path || ''
+              const path = (file.originFileObj as any).path || ''
               setFileMap({ ...fileMap, [path]: file.originFileObj as unknown as FileType })
               updatePaintingState({ [item.key!]: path })
             }}>

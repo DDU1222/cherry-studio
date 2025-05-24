@@ -842,6 +842,11 @@
         "turbo": "快速",
         "quality": "高品質"
       },
+      "aspect_ratios": {
+        "square": "方形",
+        "portrait": "豎圖",
+        "landscape": "橫圖"
+      },
       "mode": {
         "generate": "繪圖",
         "edit": "編輯",

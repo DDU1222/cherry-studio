@@ -842,6 +842,11 @@
         "turbo": "Turbo",
         "quality": "Quality"
       },
+      "aspect_ratios": {
+        "square": "Square",
+        "portrait": "Portrait",
+        "landscape": "Landscape"
+      },
       "mode": {
         "generate": "Draw",
         "edit": "Edit",

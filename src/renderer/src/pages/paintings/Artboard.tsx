@@ -96,8 +96,8 @@ const Artboard: FC<ArtboardProps> = ({
             {painting.urls.length > 0 && retry ? (
               <div>
                 <ImageList>
-                  {painting.urls.map((url) => (
-                    <ImageListItem key={url}>{url}</ImageListItem>
+                  {painting.urls.map((url, index) => (
+                    <ImageListItem key={url || index}>{url}</ImageListItem>
                   ))}
                 </ImageList>
                 <div>

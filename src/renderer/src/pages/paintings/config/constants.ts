@@ -1,26 +1,3 @@
-import type { PaintingAction } from '@renderer/types'
-
-// 几种默认的绘画配置
-export const DEFAULT_PAINTING: PaintingAction = {
-  id: 'aihubmix_1',
-  model: 'V_3',
-  aspectRatio: 'ASPECT_1_1',
-  numImages: 1,
-  styleType: 'AUTO',
-  prompt: '',
-  negativePrompt: '',
-  magicPromptOption: true,
-  seed: '',
-  imageWeight: 50,
-  resemblance: 50,
-  detail: 50,
-  imageFile: undefined,
-  mask: undefined,
-  files: [],
-  urls: [],
-  renderingSpeed: 'DEFAULT'
-}
-
 export const ASPECT_RATIOS = [
   {
     label: 'paintings.aspect_ratios.square',
@@ -145,4 +122,22 @@ export const RENDERING_SPEED_OPTIONS = [
     label: 'paintings.rendering_speeds.quality',
     value: 'QUALITY'
   }
+]
+
+export const QUALITY_OPTIONS = [
+  { label: 'paintings.quality_options.auto', value: 'auto' },
+  { label: 'paintings.quality_options.low', value: 'low' },
+  { label: 'paintings.quality_options.medium', value: 'medium' },
+  { label: 'paintings.quality_options.high', value: 'high' }
+]
+
+export const MODERATION_OPTIONS = [
+  { label: 'paintings.moderation_options.auto', value: 'auto' },
+  { label: 'paintings.moderation_options.low', value: 'low' }
+]
+
+export const BACKGROUND_OPTIONS = [
+  { label: 'paintings.background_options.auto', value: 'auto' },
+  { label: 'paintings.background_options.transparent', value: 'transparent' },
+  { label: 'paintings.background_options.opaque', value: 'opaque' }
 ]

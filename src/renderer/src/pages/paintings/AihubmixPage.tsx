@@ -88,6 +88,47 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
     updatePainting(mode, updatedPainting)
   }
 
+  const handleError = (error: unknown) => {
+    if (error instanceof Error && error.name !== 'AbortError') {
+      window.modal.error({
+        content: getErrorMessage(error),
+        centered: true
+      })
+    }
+  }
+
+  const downloadImages = async (urls: string[]) => {
+    const downloadedFiles = await Promise.all(
+      urls.map(async (url) => {
+        try {
+          if (!url?.trim()) {
+            console.error('图像URL为空，可能是提示词违禁')
+            window.message.warning({
+              content: t('message.empty_url'),
+              key: 'empty-url-warning'
+            })
+            return null
+          }
+          return await window.api.file.download(url)
+        } catch (error) {
+          console.error('下载图像失败:', error)
+          if (
+            error instanceof Error &&
+            (error.message.includes('Failed to parse URL') || error.message.includes('Invalid URL'))
+          ) {
+            window.message.warning({
+              content: t('message.empty_url'),
+              key: 'empty-url-warning'
+            })
+          }
+          return null
+        }
+      })
+    )
+
+    return downloadedFiles.filter((file): file is FileType => file !== null)
+  }
+
   const onGenerate = async () => {
     if (painting.files.length > 0) {
       const confirmed = await window.modal.confirm({
@@ -133,7 +174,6 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
     }
     let url = aihubmixProvider.apiHost + `/ideogram/` + mode
 
-    // 不使用 AiProvider 的通用规则，而是直接调用自定义接口
     try {
       if (mode === 'generate') {
         if (painting.model === 'V_3') {
@@ -214,50 +254,14 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             console.log('V3 API响应:', data)
             const urls = data.data.map((item) => item.url)
 
-            // Rest of the code for handling image downloads is the same
             if (urls.length > 0) {
-              const downloadedFiles = await Promise.all(
-                urls.map(async (url) => {
-                  try {
-                    // 检查URL是否为空
-                    if (!url || url.trim() === '') {
-                      console.error('图像URL为空，可能是提示词违禁')
-                      window.message.warning({
-                        content: t('message.empty_url'),
-                        key: 'empty-url-warning'
-                      })
-                      return null
-                    }
-                    return await window.api.file.download(url)
-                  } catch (error) {
-                    console.error('下载图像失败:', error)
-                    // 检查是否是URL解析错误
-                    if (
-                      error instanceof Error &&
-                      (error.message.includes('Failed to parse URL') || error.message.includes('Invalid URL'))
-                    ) {
-                      window.message.warning({
-                        content: t('message.empty_url'),
-                        key: 'empty-url-warning'
-                      })
-                    }
-                    return null
-                  }
-                })
-              )
-
-              const validFiles = downloadedFiles.filter((file): file is FileType => file !== null)
+              const validFiles = await downloadImages(urls)
               await FileManager.addFiles(validFiles)
               updatePaintingState({ files: validFiles, urls })
             }
             return
           } catch (error: unknown) {
-            if (error instanceof Error && error.name !== 'AbortError') {
-              window.modal.error({
-                content: getErrorMessage(error),
-                centered: true
-              })
-            }
+            handleError(error)
           } finally {
             setIsLoading(false)
             dispatch(setGenerating(false))
@@ -368,37 +372,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
 
           // Handle the downloaded images
           if (urls.length > 0) {
-            const downloadedFiles = await Promise.all(
-              urls.map(async (url) => {
-                try {
-                  // 检查URL是否为空
-                  if (!url || url.trim() === '') {
-                    console.error('图像URL为空，可能是提示词违禁')
-                    window.message.warning({
-                      content: t('message.empty_url'),
-                      key: 'empty-url-warning'
-                    })
-                    return null
-                  }
-                  return await window.api.file.download(url)
-                } catch (error) {
-                  console.error('下载图像失败:', error)
-                  // 检查是否是URL解析错误
-                  if (
-                    error instanceof Error &&
-                    (error.message.includes('Failed to parse URL') || error.message.includes('Invalid URL'))
-                  ) {
-                    window.message.warning({
-                      content: t('message.empty_url'),
-                      key: 'empty-url-warning'
-                    })
-                  }
-                  return null
-                }
-              })
-            )
-
-            const validFiles = downloadedFiles.filter((file): file is FileType => file !== null)
+            const validFiles = await downloadImages(urls)
             await FileManager.addFiles(validFiles)
             updatePaintingState({ files: validFiles, urls })
           }
@@ -468,60 +442,23 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         const base64s = data.data.map((item) => item.b64_json)
 
         if (urls.length > 0) {
-          const downloadedFiles = await Promise.all(
-            urls.map(async (url) => {
-              try {
-                // 检查URL是否为空
-                if (!url || url.trim() === '') {
-                  console.error('图像URL为空，可能是提示词违禁')
-                  window.message.warning({
-                    content: t('message.empty_url'),
-                    key: 'empty-url-warning'
-                  })
-                  return null
-                }
-                return await window.api.file.download(url)
-              } catch (error) {
-                console.error('下载图像失败:', error)
-                // 检查是否是URL解析错误
-                if (
-                  error instanceof Error &&
-                  (error.message.includes('Failed to parse URL') || error.message.includes('Invalid URL'))
-                ) {
-                  window.message.warning({
-                    content: t('message.empty_url'),
-                    key: 'empty-url-warning'
-                  })
-                }
-                return null
-              }
-            })
-          )
-
-          const validFiles = downloadedFiles.filter((file): file is FileType => file !== null)
-
+          const validFiles = await downloadImages(urls)
           await FileManager.addFiles(validFiles)
-
           updatePaintingState({ files: validFiles, urls })
         }
-        if (base64s.length > 0) {
-          const urls = await Promise.all(
+
+        if (base64s?.length > 0) {
+          const validFiles = await Promise.all(
             base64s.map(async (base64) => {
-              const files = await window.api.file.saveBase64Image(base64, 'base64')
-              return files.url
+              return await window.api.file.saveBase64Image(base64)
             })
           )
-
-          updatePaintingState({ files: base64s, urls })
+          await FileManager.addFiles(validFiles)
+          updatePaintingState({ files: validFiles, urls: validFiles.map((file) => file.name) })
         }
       }
     } catch (error: unknown) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        window.modal.error({
-          content: getErrorMessage(error),
-          centered: true
-        })
-      }
+      handleError(error)
     } finally {
       setIsLoading(false)
       dispatch(setGenerating(false))
@@ -531,43 +468,15 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
 
   const handleRetry = async (painting: PaintingAction) => {
     setIsLoading(true)
-    const downloadedFiles = await Promise.all(
-      painting.urls.map(async (url) => {
-        try {
-          // 检查URL是否为空
-          if (!url || url.trim() === '') {
-            console.error('图像URL为空，可能是提示词违禁')
-            window.message.warning({
-              content: t('message.empty_url'),
-              key: 'empty-url-warning'
-            })
-            return null
-          }
-          return await window.api.file.download(url)
-        } catch (error) {
-          console.error('下载图像失败:', error)
-          // 检查是否是URL解析错误
-          if (
-            error instanceof Error &&
-            (error.message.includes('Failed to parse URL') || error.message.includes('Invalid URL'))
-          ) {
-            window.message.warning({
-              content: t('message.empty_url'),
-              key: 'empty-url-warning'
-            })
-          }
-          setIsLoading(false)
-          return null
-        }
-      })
-    )
-
-    const validFiles = downloadedFiles.filter((file): file is FileType => file !== null)
-
-    await FileManager.addFiles(validFiles)
-
-    updatePaintingState({ files: validFiles, urls: painting.urls })
-    setIsLoading(false)
+    try {
+      const validFiles = await downloadImages(painting.urls)
+      await FileManager.addFiles(validFiles)
+      updatePaintingState({ files: validFiles, urls: painting.urls })
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const onCancel = () => {
@@ -843,9 +752,10 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   }, [filteredPaintings, mode, addPainting, painting])
 
   useEffect(() => {
+    const timer = spaceClickTimer.current
     return () => {
-      if (spaceClickTimer.current) {
-        clearTimeout(spaceClickTimer.current)
+      if (timer) {
+        clearTimeout(timer)
       }
     }
   }, [])

@@ -65,15 +65,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
           {
             label: 'OpenAI',
             title: 'OpenAI',
-            options: [
-              { label: 'gpt-image-1', value: 'gpt-image-1' },
-              { label: 'dall-e-3', value: 'dall-e-3' }
-            ]
-          },
-          {
-            label: 'Gemini',
-            title: 'Gemini',
-            options: [{ label: 'gemini-3.0', value: 'gemini-3.0' }]
+            options: [{ label: 'gpt-image-1', value: 'gpt-image-1' }]
           },
           {
             label: 'ideogram',

@@ -426,7 +426,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
       }
 
       // 只针对非V3模型使用通用接口
-      if (!painting.model?.includes('V_3')) {
+      if (!painting.model?.includes('V_3') || mode === 'upscale') {
         // 直接调用自定义接口
         const response = await fetch(url, { method: 'POST', headers, body })
 
@@ -438,8 +438,8 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
 
         const data = await response.json()
         console.log('通用API响应:', data)
-        const urls = data.data.map((item) => item.url)
-        const base64s = data.data.map((item) => item.b64_json)
+        const urls = data.data.filter((item) => item.url).map((item) => item.url)
+        const base64s = data.data.filter((item) => item.b64_json).map((item) => item.b64_json)
 
         if (urls.length > 0) {
           const validFiles = await downloadImages(urls)
@@ -700,14 +700,15 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             maxCount={1}
             showUploadList={false}
             listType="picture-card"
-            onChange={async ({ file }) => {
-              const path = (file.originFileObj as any).path || ''
-              setFileMap({ ...fileMap, [path]: file.originFileObj as unknown as FileType })
+            beforeUpload={(file) => {
+              const path = URL.createObjectURL(file)
+              setFileMap({ ...fileMap, [path]: file as unknown as FileType })
               updatePaintingState({ [item.key!]: path })
+              return false // 阻止默认上传行为
             }}>
             {painting[item.key!] ? (
               <ImagePreview>
-                <img src={'file://' + painting[item.key!]} alt="预览图" />
+                <img src={painting[item.key!]} alt="预览图" />
               </ImagePreview>
             ) : (
               <ImageSizeImage src={IcImageUp} theme={theme} />

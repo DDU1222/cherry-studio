@@ -873,7 +873,7 @@
         "generate": "绘图",
         "edit": "编辑",
         "remix": "混合",
-        "upscale": "放大"
+        "upscale": "高清增强"
       },
       "generate": {
         "model_tip": "模型版本：V3 为最新版本，V2 为之前版本，V2A 为快速模型、V_1 为初代模型，_TURBO 为加速版本",

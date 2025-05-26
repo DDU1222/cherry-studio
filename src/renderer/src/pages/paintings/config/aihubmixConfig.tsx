@@ -315,7 +315,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
 // 几种默认的绘画配置
 export const DEFAULT_PAINTING: PaintingAction = {
   id: 'aihubmix_1',
-  model: 'V_3',
+  model: 'gpt-image-1',
   aspectRatio: 'ASPECT_1_1',
   numImages: 1,
   styleType: 'AUTO',

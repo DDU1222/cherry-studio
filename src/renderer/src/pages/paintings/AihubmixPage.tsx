@@ -76,6 +76,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
   const getNewPainting = () => {
     return {
       ...DEFAULT_PAINTING,
+      model: mode === 'generate' ? 'gpt-image-1' : 'V_3',
       id: uuid()
     }
   }

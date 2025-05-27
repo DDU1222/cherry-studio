@@ -828,7 +828,7 @@
       "prompt_placeholder_edit": "輸入你的圖片描述，文本繪製用 '雙引號' 包裹",
       "prompt_placeholder_en": "輸入”英文“圖片描述，目前 Imagen 僅支持英文提示詞",
       "paint_course": "教程",
-      "proxy_required": "目前需要打開代理才能查看生成圖片，後續會支持國內直連",
+      "proxy_required": "打開代理並開啟”TUN模式“查看生成圖片或複製到瀏覽器開啟，後續會支持國內直連",
       "image_file_required": "請先上傳圖片",
       "image_file_retry": "請重新上傳圖片",
       "image_placeholder": "無圖片",

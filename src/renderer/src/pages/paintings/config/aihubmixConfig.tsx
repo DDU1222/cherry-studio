@@ -150,6 +150,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
           { label: '3:2', value: '1536x1024' },
           { label: '2:3', value: '1024x1536' }
         ],
+        initialValue: '1024x1024',
         condition: (painting) => painting.model === 'gpt-image-1'
       },
       {
@@ -159,6 +160,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         tooltip: 'paintings.generate.number_images_tip',
         min: 1,
         max: 10,
+        initialValue: 1,
         condition: (painting) => painting.model === 'gpt-image-1'
       },
       {
@@ -166,6 +168,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         key: 'quality',
         title: 'paintings.quality',
         options: QUALITY_OPTIONS,
+        initialValue: 'auto',
         condition: (painting) => painting.model === 'gpt-image-1'
       },
       {
@@ -173,6 +176,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         key: 'moderation',
         title: 'paintings.moderation',
         options: MODERATION_OPTIONS,
+        initialValue: 'auto',
         condition: (painting) => painting.model === 'gpt-image-1'
       },
       {
@@ -180,6 +184,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         key: 'background',
         title: 'paintings.background',
         options: BACKGROUND_OPTIONS,
+        initialValue: 'auto',
         condition: (painting) => painting.model === 'gpt-image-1'
       }
     ],

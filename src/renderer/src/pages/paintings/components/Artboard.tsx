@@ -7,7 +7,7 @@ import React, { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import ImagePreview from '../home/Markdown/ImagePreview'
+import ImagePreview from '../../home/Markdown/ImagePreview'
 
 interface ArtboardProps {
   painting: Painting

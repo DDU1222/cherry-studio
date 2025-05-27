@@ -22,16 +22,16 @@ import { Avatar, Button, Input, InputNumber, Radio, Segmented, Select, Slider, S
 import TextArea from 'antd/es/input/TextArea'
 import { Info } from 'lucide-react'
 import type { FC } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import SendMessageButton from '../home/Inputbar/SendMessageButton'
 import { SettingHelpLink, SettingTitle } from '../settings'
-import Artboard from './Artboard'
+import Artboard from './components/Artboard'
+import PaintingsList from './components/PaintingsList'
 import { type ConfigItem, createModeConfigs, DEFAULT_PAINTING } from './config/aihubmixConfig'
-import PaintingsList from './PaintingsList'
 
 // 使用函数创建配置项
 const modeConfigs = createModeConfigs()
@@ -73,13 +73,13 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
     { label: t('paintings.mode.upscale'), value: 'upscale' }
   ]
 
-  const getNewPainting = () => {
+  const getNewPainting = useCallback(() => {
     return {
       ...DEFAULT_PAINTING,
       model: mode === 'generate' ? 'gpt-image-1' : 'V_3',
       id: uuid()
     }
-  }
+  }, [mode])
 
   const textareaRef = useRef<any>(null)
 
@@ -751,7 +751,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
       addPainting(mode, newPainting)
       setPainting(newPainting)
     }
-  }, [filteredPaintings, mode, addPainting, painting])
+  }, [filteredPaintings, mode, addPainting, painting, getNewPainting])
 
   useEffect(() => {
     const timer = spaceClickTimer.current

@@ -69,7 +69,6 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
 
   const modeOptions = [
     { label: t('paintings.mode.generate'), value: 'generate' },
-    // { label: t('paintings.mode.edit'), value: 'edit' },
     { label: t('paintings.mode.remix'), value: 'remix' },
     { label: t('paintings.mode.upscale'), value: 'upscale' }
   ]
@@ -185,7 +184,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             model: painting.model,
             config: {
               aspectRatio: painting.aspectRatio?.replace('ASPECT_', '').replace('_', ':'),
-              numberOfImages: painting.numberOfImages,
+              numberOfImages: painting.model.startsWith('imagen-4.0-ultra-generate-exp') ? 1 : painting.numberOfImages,
               personGeneration: painting.personGeneration
             }
           })
@@ -847,7 +846,13 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
               value={painting.prompt}
               spellCheck={false}
               onChange={(e) => updatePaintingState({ prompt: e.target.value })}
-              placeholder={isTranslating ? t('paintings.translating') : t('paintings.prompt_placeholder_edit')}
+              placeholder={
+                isTranslating
+                  ? t('paintings.translating')
+                  : painting.model?.startsWith('imagen-')
+                    ? t('paintings.prompt_placeholder_en')
+                    : t('paintings.prompt_placeholder_edit')
+              }
               onKeyDown={handleKeyDown}
             />
             <Toolbar>

@@ -11,6 +11,7 @@ import { usePaintings } from '@renderer/hooks/usePaintings'
 import { useAllProviders } from '@renderer/hooks/useProvider'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
+import AiProvider from '@renderer/providers/AiProvider'
 import FileManager from '@renderer/services/FileManager'
 import { translateText } from '@renderer/services/TranslateService'
 import { useAppDispatch } from '@renderer/store'
@@ -30,8 +31,7 @@ import styled from 'styled-components'
 import SendMessageButton from '../home/Inputbar/SendMessageButton'
 import { SettingHelpLink, SettingTitle } from '../settings'
 import Artboard from './Artboard'
-import { type ConfigItem, createModeConfigs } from './config/aihubmixConfig'
-import { DEFAULT_PAINTING } from './config/constants'
+import { type ConfigItem, createModeConfigs, DEFAULT_PAINTING } from './config/aihubmixConfig'
 import PaintingsList from './PaintingsList'
 
 // 使用函数创建配置项
@@ -136,7 +136,28 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
     // 不使用 AiProvider 的通用规则，而是直接调用自定义接口
     try {
       if (mode === 'generate') {
-        if (painting.model === 'V_3') {
+        if (painting.model.startsWith('imagen-')) {
+          const AI = new AiProvider(aihubmixProvider)
+          const base64s = await AI.generateImage({
+            prompt,
+            model: painting.model,
+            config: {
+              aspectRatio: painting.aspectRatio?.replace('ASPECT_', '').replace('_', ':'),
+              numberOfImages: painting.numberOfImages,
+              personGeneration: painting.personGeneration
+            }
+          })
+          if (base64s?.length > 0) {
+            const validFiles = await Promise.all(
+              base64s.map(async (base64) => {
+                return await window.api.file.saveBase64Image(base64)
+              })
+            )
+            await FileManager.addFiles(validFiles)
+            updatePaintingState({ files: validFiles, urls: validFiles.map((file) => file.name) })
+          }
+          return
+        } else if (painting.model === 'V_3') {
           // V3 API uses different endpoint and parameters format
           const formData = new FormData()
           formData.append('prompt', prompt)

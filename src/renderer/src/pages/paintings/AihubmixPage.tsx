@@ -622,7 +622,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
 
         return (
           <Radio.Group
-            value={painting[item.key!]}
+            value={painting[item.key!] || item.initialValue}
             onChange={(e) => updatePaintingState({ [item.key!]: e.target.value })}>
             {radioOptions!.map((option) => (
               <Radio.Button key={option.value} value={option.value}>
@@ -639,14 +639,14 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
               min={item.min}
               max={item.max}
               step={item.step}
-              value={painting[item.key!] as number}
+              value={(painting[item.key!] || item.initialValue) as number}
               onChange={(v) => updatePaintingState({ [item.key!]: v })}
             />
             <StyledInputNumber
               min={item.min}
               max={item.max}
               step={item.step}
-              value={painting[item.key!] as number}
+              value={(painting[item.key!] || item.initialValue) as number}
               onChange={(v) => updatePaintingState({ [item.key!]: v })}
             />
           </SliderContainer>
@@ -655,7 +655,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
       case 'input':
         return (
           <Input
-            value={painting[item.key!] as string}
+            value={(painting[item.key!] || item.initialValue) as string}
             onChange={(e) => updatePaintingState({ [item.key!]: e.target.value })}
             suffix={
               item.key === 'seed' ? (
@@ -672,14 +672,14 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             min={item.min}
             max={item.max}
             style={{ width: '100%' }}
-            value={painting[item.key!] as number}
+            value={(painting[item.key!] || item.initialValue) as number}
             onChange={(v) => updatePaintingState({ [item.key!]: v })}
           />
         )
       case 'textarea':
         return (
           <TextArea
-            value={painting[item.key!] as string}
+            value={(painting[item.key!] || item.initialValue) as string}
             onChange={(e) => updatePaintingState({ [item.key!]: e.target.value })}
             spellCheck={false}
             rows={4}
@@ -689,7 +689,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
         return (
           <HStack>
             <Switch
-              checked={painting[item.key!] as boolean}
+              checked={(painting[item.key!] || item.initialValue) as boolean}
               onChange={(checked) => updatePaintingState({ [item.key!]: checked })}
             />
           </HStack>

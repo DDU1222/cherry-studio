@@ -71,7 +71,11 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
           {
             label: 'Gemini',
             title: 'Gemini',
-            options: [{ label: 'imagen-3.0-generate-002', value: 'imagen-3.0-generate-002' }]
+            options: [
+              { label: 'imagen-4.0-preview', value: 'imagen-4.0-generate-preview-05-20' },
+              { label: 'imagen-4.0-ultra-exp', value: 'imagen-4.0-ultra-generate-exp-05-20' },
+              { label: 'imagen-3.0', value: 'imagen-3.0-generate-001' }
+            ]
           },
           {
             label: 'ideogram',
@@ -201,7 +205,8 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         min: 1,
         max: 4,
         initialValue: 4,
-        condition: (painting) => Boolean(painting.model?.startsWith('imagen-'))
+        condition: (painting) =>
+          Boolean(painting.model?.startsWith('imagen-') && painting.model !== 'imagen-4.0-ultra-generate-exp-05-20')
       },
       {
         type: 'select',

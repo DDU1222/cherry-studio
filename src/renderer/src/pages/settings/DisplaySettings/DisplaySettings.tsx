@@ -1,9 +1,10 @@
 import { SyncOutlined } from '@ant-design/icons'
 import CodeEditor from '@renderer/components/CodeEditor'
 import { HStack } from '@renderer/components/Layout'
+import TextBadge from '@renderer/components/TextBadge'
 import { isMac, THEME_COLOR_PRESETS } from '@renderer/config/constant'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useSettings } from '@renderer/hooks/useSettings'
+import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
 import useUserTheme from '@renderer/hooks/useUserTheme'
 import { useAppDispatch } from '@renderer/store'
 import {
@@ -68,6 +69,7 @@ const DisplaySettings: FC = () => {
     assistantIconType,
     userTheme
   } = useSettings()
+  const { navbarPosition, setNavbarPosition } = useNavbarPosition()
   const { theme, settedTheme } = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -196,7 +198,7 @@ const DisplaySettings: FC = () => {
               value={userTheme.colorPrimary}
               onChange={(color) => handleColorPrimaryChange(color.toHexString())}
               showText
-              style={{ width: '110px' }}
+              size="small"
               presets={[
                 {
                   label: 'Presets',
@@ -217,18 +219,38 @@ const DisplaySettings: FC = () => {
         )}
       </SettingGroup>
       <SettingGroup theme={theme}>
+        <SettingTitle style={{ justifyContent: 'flex-start', gap: 5 }}>
+          {t('settings.display.navbar.title')} <TextBadge text="New" />
+        </SettingTitle>
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitle>{t('settings.display.navbar.position')}</SettingRowTitle>
+          <Segmented
+            value={navbarPosition}
+            shape="round"
+            onChange={setNavbarPosition}
+            options={[
+              { label: t('settings.display.navbar.position.left'), value: 'left' },
+              { label: t('settings.display.navbar.position.top'), value: 'top' }
+            ]}
+          />
+        </SettingRow>
+      </SettingGroup>
+      <SettingGroup theme={theme}>
         <SettingTitle>{t('settings.display.zoom.title')}</SettingTitle>
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>{t('settings.zoom.title')}</SettingRowTitle>
           <ZoomButtonGroup>
-            <Button onClick={() => handleZoomFactor(-0.1)} icon={<Minus size="14" />} />
+            <Button onClick={() => handleZoomFactor(-0.1)} icon={<Minus size="14" />} color="default" variant="text" />
             <ZoomValue>{Math.round(currentZoom * 100)}%</ZoomValue>
-            <Button onClick={() => handleZoomFactor(0.1)} icon={<Plus size="14" />} />
+            <Button onClick={() => handleZoomFactor(0.1)} icon={<Plus size="14" />} color="default" variant="text" />
             <Button
               onClick={() => handleZoomFactor(0, true)}
               style={{ marginLeft: 8 }}
               icon={<RotateCcw size="14" />}
+              color="default"
+              variant="text"
             />
           </ZoomButtonGroup>
         </SettingRow>
@@ -284,22 +306,24 @@ const DisplaySettings: FC = () => {
           />
         </SettingRow>
       </SettingGroup>
-      <SettingGroup theme={theme}>
-        <SettingTitle
-          style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{t('settings.display.sidebar.title')}</span>
-          <ResetButtonWrapper>
-            <Button onClick={handleReset}>{t('common.reset')}</Button>
-          </ResetButtonWrapper>
-        </SettingTitle>
-        <SettingDivider />
-        <SidebarIconsManager
-          visibleIcons={visibleIcons}
-          disabledIcons={disabledIcons}
-          setVisibleIcons={setVisibleIcons}
-          setDisabledIcons={setDisabledIcons}
-        />
-      </SettingGroup>
+      {navbarPosition === 'left' && (
+        <SettingGroup theme={theme}>
+          <SettingTitle
+            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{t('settings.display.sidebar.title')}</span>
+            <ResetButtonWrapper>
+              <Button onClick={handleReset}>{t('common.reset')}</Button>
+            </ResetButtonWrapper>
+          </SettingTitle>
+          <SettingDivider />
+          <SidebarIconsManager
+            visibleIcons={visibleIcons}
+            disabledIcons={disabledIcons}
+            setVisibleIcons={setVisibleIcons}
+            setDisabledIcons={setDisabledIcons}
+          />
+        </SettingGroup>
+      )}
       <SettingGroup theme={theme}>
         <SettingTitle>
           {t('settings.display.custom.css')}
@@ -313,9 +337,9 @@ const DisplaySettings: FC = () => {
           language="css"
           placeholder={t('settings.display.custom.css.placeholder')}
           onChange={(value) => dispatch(setCustomCss(value))}
-          height="350px"
+          height="60vh"
           options={{
-            collapsible: true,
+            collapsible: false,
             wrappable: true,
             autocompletion: true,
             lineNumbers: true,

@@ -1,5 +1,6 @@
 import { FolderOpenOutlined, SaveOutlined, SyncOutlined, WarningOutlined } from '@ant-design/icons'
 import { HStack } from '@renderer/components/Layout'
+import Selector from '@renderer/components/Selector'
 import { WebdavBackupManager } from '@renderer/components/WebdavBackupManager'
 import { useWebdavBackupModal, WebdavBackupModal } from '@renderer/components/WebdavModals'
 import { useTheme } from '@renderer/context/ThemeProvider'
@@ -8,6 +9,7 @@ import { startAutoSync, stopAutoSync } from '@renderer/services/BackupService'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
 import {
   setWebdavAutoSync,
+  setWebdavDisableStream as _setWebdavDisableStream,
   setWebdavHost as _setWebdavHost,
   setWebdavMaxBackups as _setWebdavMaxBackups,
   setWebdavPass as _setWebdavPass,
@@ -16,7 +18,7 @@ import {
   setWebdavSyncInterval as _setWebdavSyncInterval,
   setWebdavUser as _setWebdavUser
 } from '@renderer/store/settings'
-import { Button, Input, Select, Switch, Tooltip } from 'antd'
+import { Button, Input, Switch, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -31,7 +33,8 @@ const WebDavSettings: FC = () => {
     webdavPath: webDAVPath,
     webdavSyncInterval: webDAVSyncInterval,
     webdavMaxBackups: webDAVMaxBackups,
-    webdavSkipBackupFile: webdDAVSkipBackupFile
+    webdavSkipBackupFile: webdDAVSkipBackupFile,
+    webdavDisableStream: webDAVDisableStream
   } = useSettings()
 
   const [webdavHost, setWebdavHost] = useState<string | undefined>(webDAVHost)
@@ -39,6 +42,7 @@ const WebDavSettings: FC = () => {
   const [webdavPass, setWebdavPass] = useState<string | undefined>(webDAVPass)
   const [webdavPath, setWebdavPath] = useState<string | undefined>(webDAVPath)
   const [webdavSkipBackupFile, setWebdavSkipBackupFile] = useState<boolean>(webdDAVSkipBackupFile)
+  const [webdavDisableStream, setWebdavDisableStream] = useState<boolean>(webDAVDisableStream)
   const [backupManagerVisible, setBackupManagerVisible] = useState(false)
 
   const [syncInterval, setSyncInterval] = useState<number>(webDAVSyncInterval)
@@ -58,10 +62,10 @@ const WebDavSettings: FC = () => {
     dispatch(_setWebdavSyncInterval(value))
     if (value === 0) {
       dispatch(setWebdavAutoSync(false))
-      stopAutoSync()
+      stopAutoSync('webdav')
     } else {
       dispatch(setWebdavAutoSync(true))
-      startAutoSync()
+      startAutoSync(false, 'webdav')
     }
   }
 
@@ -73,6 +77,11 @@ const WebDavSettings: FC = () => {
   const onSkipBackupFilesChange = (value: boolean) => {
     setWebdavSkipBackupFile(value)
     dispatch(_setWebdavSkipBackupFile(value))
+  }
+
+  const onDisableStreamChange = (value: boolean) => {
+    setWebdavDisableStream(value)
+    dispatch(_setWebdavDisableStream(value))
   }
 
   const renderSyncStatus = () => {
@@ -173,31 +182,43 @@ const WebDavSettings: FC = () => {
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.webdav.autoSync')}</SettingRowTitle>
-        <Select value={syncInterval} onChange={onSyncIntervalChange} disabled={!webdavHost} style={{ width: 120 }}>
-          <Select.Option value={0}>{t('settings.data.webdav.autoSync.off')}</Select.Option>
-          <Select.Option value={1}>{t('settings.data.webdav.minute_interval', { count: 1 })}</Select.Option>
-          <Select.Option value={5}>{t('settings.data.webdav.minute_interval', { count: 5 })}</Select.Option>
-          <Select.Option value={15}>{t('settings.data.webdav.minute_interval', { count: 15 })}</Select.Option>
-          <Select.Option value={30}>{t('settings.data.webdav.minute_interval', { count: 30 })}</Select.Option>
-          <Select.Option value={60}>{t('settings.data.webdav.hour_interval', { count: 1 })}</Select.Option>
-          <Select.Option value={120}>{t('settings.data.webdav.hour_interval', { count: 2 })}</Select.Option>
-          <Select.Option value={360}>{t('settings.data.webdav.hour_interval', { count: 6 })}</Select.Option>
-          <Select.Option value={720}>{t('settings.data.webdav.hour_interval', { count: 12 })}</Select.Option>
-          <Select.Option value={1440}>{t('settings.data.webdav.hour_interval', { count: 24 })}</Select.Option>
-        </Select>
+        <Selector
+          size={14}
+          value={syncInterval}
+          onChange={onSyncIntervalChange}
+          disabled={!webdavHost}
+          options={[
+            { label: t('settings.data.webdav.autoSync.off'), value: 0 },
+            { label: t('settings.data.webdav.minute_interval', { count: 1 }), value: 1 },
+            { label: t('settings.data.webdav.minute_interval', { count: 5 }), value: 5 },
+            { label: t('settings.data.webdav.minute_interval', { count: 15 }), value: 15 },
+            { label: t('settings.data.webdav.minute_interval', { count: 30 }), value: 30 },
+            { label: t('settings.data.webdav.hour_interval', { count: 1 }), value: 60 },
+            { label: t('settings.data.webdav.hour_interval', { count: 2 }), value: 120 },
+            { label: t('settings.data.webdav.hour_interval', { count: 6 }), value: 360 },
+            { label: t('settings.data.webdav.hour_interval', { count: 12 }), value: 720 },
+            { label: t('settings.data.webdav.hour_interval', { count: 24 }), value: 1440 }
+          ]}
+        />
       </SettingRow>
       <SettingDivider />
       <SettingRow>
         <SettingRowTitle>{t('settings.data.webdav.maxBackups')}</SettingRowTitle>
-        <Select value={maxBackups} onChange={onMaxBackupsChange} disabled={!webdavHost} style={{ width: 120 }}>
-          <Select.Option value={0}>{t('settings.data.webdav.maxBackups.unlimited')}</Select.Option>
-          <Select.Option value={1}>1</Select.Option>
-          <Select.Option value={3}>3</Select.Option>
-          <Select.Option value={5}>5</Select.Option>
-          <Select.Option value={10}>10</Select.Option>
-          <Select.Option value={20}>20</Select.Option>
-          <Select.Option value={50}>50</Select.Option>
-        </Select>
+        <Selector
+          size={14}
+          value={maxBackups}
+          onChange={onMaxBackupsChange}
+          disabled={!webdavHost}
+          options={[
+            { label: t('settings.data.local.maxBackups.unlimited'), value: 0 },
+            { label: '1', value: 1 },
+            { label: '3', value: 3 },
+            { label: '5', value: 5 },
+            { label: '10', value: 10 },
+            { label: '20', value: 20 },
+            { label: '50', value: 50 }
+          ]}
+        />
       </SettingRow>
       <SettingDivider />
       <SettingRow>
@@ -206,6 +227,14 @@ const WebDavSettings: FC = () => {
       </SettingRow>
       <SettingRow>
         <SettingHelpText>{t('settings.data.backup.skip_file_data_help')}</SettingHelpText>
+      </SettingRow>
+      <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.data.webdav.disableStream.title')}</SettingRowTitle>
+        <Switch checked={webdavDisableStream} onChange={onDisableStreamChange} />
+      </SettingRow>
+      <SettingRow>
+        <SettingHelpText>{t('settings.data.webdav.disableStream.help')}</SettingHelpText>
       </SettingRow>
       {webdavSync && syncInterval > 0 && (
         <>
@@ -233,7 +262,8 @@ const WebDavSettings: FC = () => {
             webdavHost,
             webdavUser,
             webdavPass,
-            webdavPath
+            webdavPath,
+            webdavDisableStream
           }}
         />
       </>

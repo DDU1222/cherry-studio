@@ -37,11 +37,22 @@ import {
 import { type Chunk, ChunkType } from '@renderer/types/chunk'
 import { Message } from '@renderer/types/newMessage'
 import { SdkModel } from '@renderer/types/sdk'
-import { removeSpecialCharactersForTopicName } from '@renderer/utils'
+import { removeSpecialCharactersForTopicName, uuid } from '@renderer/utils'
+import {
+  abortCompletion,
+  addAbortController,
+  createAbortPromise,
+  removeAbortController
+} from '@renderer/utils/abortController'
 import { isAbortError } from '@renderer/utils/error'
 import { extractInfoFromXML, ExtractResults } from '@renderer/utils/extract'
 import { findFileBlocks, getMainTextContent } from '@renderer/utils/messageUtils/find'
-import { buildSystemPromptWithThinkTool, buildSystemPromptWithTools } from '@renderer/utils/prompt'
+import {
+  buildSystemPromptWithThinkTool,
+  buildSystemPromptWithTools,
+  containsSupportedVariables,
+  replacePromptVariables
+} from '@renderer/utils/prompt'
 import { findLast, isEmpty, takeRight } from 'lodash'
 
 import AiProvider from '../aiCore'
@@ -312,16 +323,18 @@ async function fetchExternalTool(
     let memorySearchReferences: MemoryItem[] | undefined
 
     const parentSpanId = currentSpan(lastUserMessage.topicId, assistant.model?.name)?.spanContext().spanId
-    // 并行执行搜索
-    if (shouldWebSearch || shouldKnowledgeSearch || shouldSearchMemory) {
-      ;[webSearchResponseFromSearch, knowledgeReferencesFromSearch, memorySearchReferences] = await Promise.all([
-        searchTheWeb(extractResults, parentSpanId),
-        searchKnowledgeBase(extractResults, parentSpanId, assistant.model?.name),
-        searchMemory()
-      ])
+    if (shouldWebSearch) {
+      webSearchResponseFromSearch = await searchTheWeb(extractResults, parentSpanId)
     }
 
-    // 存储搜索结果
+    if (shouldKnowledgeSearch) {
+      knowledgeReferencesFromSearch = await searchKnowledgeBase(extractResults, parentSpanId, assistant.model?.name)
+    }
+
+    if (shouldSearchMemory) {
+      memorySearchReferences = await searchMemory()
+    }
+
     if (lastUserMessage) {
       if (webSearchResponseFromSearch) {
         window.keyv.set(`web-search-${lastUserMessage.id}`, webSearchResponseFromSearch)
@@ -373,8 +386,8 @@ async function fetchExternalTool(
           .map((result) => result.value)
           .flat()
         // 添加内置工具
-        const { BUILT_IN_TOOLS } = await import('../tools')
-        mcpTools.push(...BUILT_IN_TOOLS)
+        // const { BUILT_IN_TOOLS } = await import('../tools')
+        // mcpTools.push(...BUILT_IN_TOOLS)
 
         // 根据toolUseMode决定如何构建系统提示词
         const basePrompt = assistant.prompt
@@ -423,6 +436,10 @@ export async function fetchChatCompletion({
   // onChunkStatus: (status: 'searching' | 'processing' | 'success' | 'error') => void
 }) {
   logger.debug('fetchChatCompletion', messages, assistant)
+
+  if (assistant.prompt && containsSupportedVariables(assistant.prompt)) {
+    assistant.prompt = await replacePromptVariables(assistant.prompt, assistant.model?.name)
+  }
 
   const provider = getAssistantProvider(assistant)
   const AI = new AiProvider(provider)
@@ -492,7 +509,7 @@ export async function fetchChatCompletion({
   // Post-conversation memory processing
   const globalMemoryEnabled = selectGlobalMemoryEnabled(store.getState())
   if (globalMemoryEnabled && assistant.enableMemory) {
-    await processConversationMemory(messages, assistant)
+    processConversationMemory(messages, assistant)
   }
 
   return await AI.completionsForTrace(completionsParams, requestOptions)
@@ -641,8 +658,12 @@ export async function fetchTranslate({ content, assistant, onResponse }: FetchTr
 }
 
 export async function fetchMessagesSummary({ messages, assistant }: { messages: Message[]; assistant: Assistant }) {
-  const prompt = (getStoreSetting('topicNamingPrompt') as string) || i18n.t('prompts.title')
+  let prompt = (getStoreSetting('topicNamingPrompt') as string) || i18n.t('prompts.title')
   const model = getTopNamingModel() || assistant.model || getDefaultModel()
+
+  if (prompt && containsSupportedVariables(prompt)) {
+    prompt = await replacePromptVariables(prompt, model.name)
+  }
 
   // 总结上下文总是取最后5条消息
   const contextMessages = takeRight(messages, 5)
@@ -828,8 +849,13 @@ export function checkApiProvider(provider: Provider): void {
   }
 }
 
-export async function checkApi(provider: Provider, model: Model): Promise<void> {
+export async function checkApi(provider: Provider, model: Model, timeout = 15000): Promise<void> {
   checkApiProvider(provider)
+
+  const controller = new AbortController()
+  const abortFn = () => controller.abort()
+  const taskId = uuid()
+  addAbortController(taskId, abortFn)
 
   const ai = new AiProvider(provider)
 
@@ -837,24 +863,54 @@ export async function checkApi(provider: Provider, model: Model): Promise<void> 
   assistant.model = model
   try {
     if (isEmbeddingModel(model)) {
-      await ai.getEmbeddingDimensions(model)
+      // race 超时 15s
+      logger.silly("it's a embedding model")
+      const timerPromise = new Promise((_, reject) => setTimeout(() => reject('Timeout'), timeout))
+      await Promise.race([ai.getEmbeddingDimensions(model), timerPromise])
     } else {
+      // 通过该状态判断abort原因
+      let streamError: Error | undefined = undefined
+
+      // 15s超时
+      const timer = setTimeout(() => {
+        abortCompletion(taskId)
+        streamError = new Error('Timeout')
+      }, timeout)
+
       const params: CompletionsParams = {
         callType: 'check',
         messages: 'hi',
         assistant,
         streamOutput: true,
         enableReasoning: false,
-        shouldThrow: true
+        onChunk: () => {
+          // 接收到任意chunk都直接abort
+          abortCompletion(taskId)
+        },
+        onError: (e) => {
+          // 捕获stream error
+          streamError = e
+          abortCompletion(taskId)
+        }
       }
 
       // Try streaming check first
-      const result = await ai.completions(params)
-      if (!result.getText()) {
-        throw new Error('No response received')
+      try {
+        await createAbortPromise(controller.signal, ai.completions(params))
+      } catch (e: any) {
+        if (isAbortError(e)) {
+          if (streamError) {
+            throw streamError
+          }
+        } else {
+          throw e
+        }
+      } finally {
+        clearTimeout(timer)
       }
     }
   } catch (error: any) {
+    // FIXME: 这种判断方法无法严格保证错误是流式引起的
     if (error.message.includes('stream')) {
       const params: CompletionsParams = {
         callType: 'check',
@@ -863,12 +919,19 @@ export async function checkApi(provider: Provider, model: Model): Promise<void> 
         streamOutput: false,
         shouldThrow: true
       }
-      const result = await ai.completions(params)
-      if (!result.getText()) {
-        throw new Error('No response received')
-      }
+      // 超时判断
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('Timeout'), timeout))
+      await Promise.race([ai.completions(params), timeoutPromise])
     } else {
       throw error
     }
+  } finally {
+    removeAbortController(taskId, abortFn)
   }
+}
+
+export async function checkModel(provider: Provider, model: Model, timeout = 15000): Promise<{ latency: number }> {
+  const startTime = performance.now()
+  await checkApi(provider, model, timeout)
+  return { latency: performance.now() - startTime }
 }

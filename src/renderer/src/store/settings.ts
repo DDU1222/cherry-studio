@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
 import {
+  ApiServerConfig,
   AssistantsSortType,
   CodeStyleVarious,
   LanguageVarious,
@@ -48,6 +49,7 @@ export interface SettingsState {
   targetLanguage: TranslateLanguageVarious
   proxyMode: 'system' | 'custom' | 'none'
   proxyUrl?: string
+  proxyBypassRules?: string
   userName: string
   userId: string
   showPrompt: boolean
@@ -204,6 +206,8 @@ export interface SettingsState {
   enableDeveloperMode: boolean
   // UI
   navbarPosition: 'left' | 'top'
+  // API Server
+  apiServer: ApiServerConfig
 }
 
 export type MultiModelMessageStyle = 'horizontal' | 'vertical' | 'fold' | 'grid'
@@ -217,6 +221,7 @@ export const initialState: SettingsState = {
   targetLanguage: 'en-us',
   proxyMode: 'system',
   proxyUrl: undefined,
+  proxyBypassRules: undefined,
   userName: '',
   userId: uuid(),
   showPrompt: true,
@@ -376,7 +381,14 @@ export const initialState: SettingsState = {
   // Developer mode
   enableDeveloperMode: false,
   // UI
-  navbarPosition: 'left'
+  navbarPosition: 'top',
+  // API Server
+  apiServer: {
+    enabled: false,
+    host: 'localhost',
+    port: 23333,
+    apiKey: `cs-sk-${uuid()}`
+  }
 }
 
 const settingsSlice = createSlice({
@@ -412,6 +424,9 @@ const settingsSlice = createSlice({
     },
     setProxyUrl: (state, action: PayloadAction<string | undefined>) => {
       state.proxyUrl = action.payload
+    },
+    setProxyBypassRules: (state, action: PayloadAction<string | undefined>) => {
+      state.proxyBypassRules = action.payload
     },
     setUserName: (state, action: PayloadAction<string>) => {
       state.userName = action.payload
@@ -780,6 +795,25 @@ const settingsSlice = createSlice({
     },
     setNavbarPosition: (state, action: PayloadAction<'left' | 'top'>) => {
       state.navbarPosition = action.payload
+    },
+    // API Server actions
+    setApiServerEnabled: (state, action: PayloadAction<boolean>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        enabled: action.payload
+      }
+    },
+    setApiServerPort: (state, action: PayloadAction<number>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        port: action.payload
+      }
+    },
+    setApiServerApiKey: (state, action: PayloadAction<string>) => {
+      state.apiServer = {
+        ...state.apiServer,
+        apiKey: action.payload
+      }
     }
   }
 })
@@ -797,6 +831,7 @@ export const {
   setTargetLanguage,
   setProxyMode,
   setProxyUrl,
+  setProxyBypassRules,
   setUserName,
   setShowPrompt,
   setShowTokens,
@@ -902,7 +937,11 @@ export const {
   setS3,
   setS3Partial,
   setEnableDeveloperMode,
-  setNavbarPosition
+  setNavbarPosition,
+  // API Server actions
+  setApiServerEnabled,
+  setApiServerPort,
+  setApiServerApiKey
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

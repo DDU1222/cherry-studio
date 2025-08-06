@@ -4,17 +4,23 @@ import { DEFAULT_CONTEXTCOUNT, DEFAULT_TEMPERATURE, isMac } from '@renderer/conf
 import { DEFAULT_MIN_APPS } from '@renderer/config/minapps'
 import { isFunctionCallingModel, isNotSupportedTextDelta, SYSTEM_MODELS } from '@renderer/config/models'
 import { TRANSLATE_PROMPT } from '@renderer/config/prompts'
+import {
+  isSupportArrayContentProvider,
+  isSupportDeveloperRoleProvider,
+  isSupportStreamOptionsProvider,
+  isSystemProvider
+} from '@renderer/config/providers'
 import db from '@renderer/databases'
 import i18n from '@renderer/i18n'
 import { Assistant, LanguageCode, Model, Provider, WebSearchProvider } from '@renderer/types'
 import { getDefaultGroupName, getLeadingEmoji, runAsyncFunction, uuid } from '@renderer/utils'
-import { UpgradeChannel } from '@shared/config/constant'
+import { defaultByPassRules, UpgradeChannel } from '@shared/config/constant'
 import { isEmpty } from 'lodash'
 import { createMigrate } from 'redux-persist'
 
 import { RootState } from '.'
 import { DEFAULT_TOOL_ORDER } from './inputTools'
-import { INITIAL_PROVIDERS, initialState as llmInitialState, moveProvider } from './llm'
+import { initialState as llmInitialState, moveProvider, SYSTEM_PROVIDERS } from './llm'
 import { mcpSlice } from './mcp'
 import { defaultActionItems } from './selectionStore'
 import { DEFAULT_SIDEBAR_ICONS, initialState as settingsInitialState } from './settings'
@@ -53,7 +59,7 @@ function addMiniApp(state: RootState, id: string) {
 // add provider to state
 function addProvider(state: RootState, id: string) {
   if (!state.llm.providers.find((p) => p.id === id)) {
-    const _provider = INITIAL_PROVIDERS.find((p) => p.id === id)
+    const _provider = SYSTEM_PROVIDERS.find((p) => p.id === id)
     if (_provider) {
       state.llm.providers.push(_provider)
     }
@@ -1907,9 +1913,97 @@ const migrateConfig = {
         updateModelTextDelta(state.assistants.defaultAssistant.defaultModel)
       }
 
+      addProvider(state, 'aws-bedrock')
+
+      // 初始化 awsBedrock 设置
+      if (!state.llm.settings.awsBedrock) {
+        state.llm.settings.awsBedrock = llmInitialState.settings.awsBedrock
+      }
+
       return state
     } catch (error) {
       logger.error('migrate 124 error', error as Error)
+      return state
+    }
+  },
+  '125': (state: RootState) => {
+    try {
+      // Initialize API server configuration if not present
+      if (!state.settings.apiServer) {
+        state.settings.apiServer = {
+          enabled: false,
+          host: 'localhost',
+          port: 23333,
+          apiKey: `cs-sk-${uuid()}`
+        }
+      }
+      return state
+    } catch (error) {
+      logger.error('migrate 125 error', error as Error)
+      return state
+    }
+  },
+  '126': (state: RootState) => {
+    try {
+      state.knowledge.bases.forEach((base) => {
+        // @ts-ignore eslint-disable-next-line
+        if (base.preprocessOrOcrProvider) {
+          // @ts-ignore eslint-disable-next-line
+          base.preprocessProvider = base.preprocessOrOcrProvider
+          // @ts-ignore eslint-disable-next-line
+          delete base.preprocessOrOcrProvider
+          // @ts-ignore eslint-disable-next-line
+          if (base.preprocessProvider.type === 'ocr') {
+            // @ts-ignore eslint-disable-next-line
+            delete base.preprocessProvider
+          }
+        }
+      })
+      return state
+    } catch (error) {
+      logger.error('migrate 126 error', error as Error)
+      return state
+    }
+  },
+  '127': (state: RootState) => {
+    try {
+      addProvider(state, 'poe')
+
+      if (!state.settings.proxyBypassRules) {
+        state.settings.proxyBypassRules = defaultByPassRules
+      }
+
+      // 迁移api选项设置
+      state.llm.providers.forEach((provider) => {
+        // 新字段默认支持
+        const changes = {
+          isNotSupportArrayContent: false,
+          isNotSupportDeveloperRole: false,
+          isNotSupportStreamOptions: false
+        }
+        if (!isSupportArrayContentProvider(provider) || provider.isNotSupportArrayContent) {
+          // 原本开启了兼容模式的provider不受影响
+          changes.isNotSupportArrayContent = true
+        }
+        if (!isSupportDeveloperRoleProvider(provider)) {
+          changes.isNotSupportDeveloperRole = true
+        }
+        if (!isSupportStreamOptionsProvider(provider)) {
+          changes.isNotSupportStreamOptions = true
+        }
+        updateProvider(state, provider.id, changes)
+      })
+
+      // 迁移以前删除掉的内置提供商
+      for (const provider of state.llm.providers) {
+        if (provider.isSystem && !isSystemProvider(provider)) {
+          updateProvider(state, provider.id, { isSystem: false })
+        }
+      }
+
+      return state
+    } catch (error) {
+      logger.error('migrate 127 error', error as Error)
       return state
     }
   }

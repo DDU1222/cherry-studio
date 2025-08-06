@@ -7,6 +7,7 @@ import {
   isDoubaoThinkingAutoModel,
   isGrokReasoningModel,
   isNotSupportSystemMessageModel,
+  isQwen3235BA22BThinkingModel,
   isQwenMTModel,
   isQwenReasoningModel,
   isReasoningModel,
@@ -21,6 +22,12 @@ import {
   isSupportedThinkingTokenZhipuModel,
   isVisionModel
 } from '@renderer/config/models'
+import {
+  isSupportArrayContentProvider,
+  isSupportDeveloperRoleProvider,
+  isSupportQwen3EnableThinkingProvider,
+  isSupportStreamOptionsProvider
+} from '@renderer/config/providers'
 import { processPostsuffixQwen3Model, processReqMessages } from '@renderer/services/ModelMessageService'
 import { estimateTextTokens } from '@renderer/services/TokenService'
 // For Copilot token
@@ -140,6 +147,9 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
         return { reasoning: { enabled: false, exclude: true } }
       }
       if (isSupportedThinkingTokenQwenModel(model) || isSupportedThinkingTokenHunyuanModel(model)) {
+        if (isQwen3235BA22BThinkingModel(model)) {
+          return {}
+        }
         return { enable_thinking: false }
       }
 
@@ -187,7 +197,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
     // Qwen models
     if (isSupportedThinkingTokenQwenModel(model)) {
       const thinkConfig = {
-        enable_thinking: true,
+        enable_thinking: isQwen3235BA22BThinkingModel(model) ? undefined : true,
         thinking_budget: budgetTokens
       }
       if (this.provider.id === 'dashscope') {
@@ -275,9 +285,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
       return true
     }
 
-    const providers = ['deepseek', 'baichuan', 'minimax', 'xirang']
-
-    return providers.includes(this.provider.id)
+    return !isSupportArrayContentProvider(this.provider)
   }
 
   /**
@@ -491,7 +499,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
 
         if (isSupportedReasoningEffortOpenAIModel(model)) {
           systemMessage = {
-            role: 'developer',
+            role: isSupportDeveloperRoleProvider(this.provider) ? 'developer' : 'system',
             content: `Formatting re-enabled${systemMessage ? '\n' + systemMessage.content : ''}`
           }
         }
@@ -519,7 +527,11 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
         }
 
         const lastUserMsg = userMessages.findLast((m) => m.role === 'user')
-        if (lastUserMsg && isSupportedThinkingTokenQwenModel(model) && model.provider !== 'dashscope') {
+        if (
+          lastUserMsg &&
+          isSupportedThinkingTokenQwenModel(model) &&
+          !isSupportQwen3EnableThinkingProvider(this.provider)
+        ) {
           const postsuffix = '/no_think'
           const qwenThinkModeEnabled = assistant.settings?.qwenThinkMode === true
           const currentContent = lastUserMsg.content
@@ -561,8 +573,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
 
         // Create the appropriate parameters object based on whether streaming is enabled
         // Note: Some providers like Mistral don't support stream_options
-        const mistralProviders = ['mistral']
-        const shouldIncludeStreamOptions = streamOutput && !mistralProviders.includes(this.provider.id)
+        const shouldIncludeStreamOptions = streamOutput && isSupportStreamOptionsProvider(this.provider)
 
         const sdkParams: OpenAISdkParams = streamOutput
           ? {
@@ -714,8 +725,8 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
       isFinished = true
     }
 
-    let isFirstThinkingChunk = true
-    let isFirstTextChunk = true
+    let isThinking = false
+    let accumulatingText = false
     return (context: ResponseChunkTransformerContext) => ({
       async transform(chunk: OpenAISdkRawChunk, controller: TransformStreamDefaultController<GenericChunk>) {
         const isOpenRouter = context.provider?.id === 'openrouter'
@@ -772,6 +783,15 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
               contentSource = choice.message
             }
 
+            // 状态管理
+            if (!contentSource?.content) {
+              accumulatingText = false
+            }
+            // @ts-ignore - reasoning_content is not in standard OpenAI types but some providers use it
+            if (!contentSource?.reasoning_content && !contentSource?.reasoning) {
+              isThinking = false
+            }
+
             if (!contentSource) {
               if ('finish_reason' in choice && choice.finish_reason) {
                 // For OpenRouter, don't emit completion signals immediately after finish_reason
@@ -809,30 +829,41 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
             // @ts-ignore - reasoning_content is not in standard OpenAI types but some providers use it
             const reasoningText = contentSource.reasoning_content || contentSource.reasoning
             if (reasoningText) {
-              if (isFirstThinkingChunk) {
+              // logger.silly('since reasoningText is trusy, try to enqueue THINKING_START AND THINKING_DELTA')
+              if (!isThinking) {
+                // logger.silly('since isThinking is falsy, try to enqueue THINKING_START')
                 controller.enqueue({
                   type: ChunkType.THINKING_START
                 } as ThinkingStartChunk)
-                isFirstThinkingChunk = false
+                isThinking = true
               }
+
+              // logger.silly('enqueue THINKING_DELTA')
               controller.enqueue({
                 type: ChunkType.THINKING_DELTA,
                 text: reasoningText
               })
+            } else {
+              isThinking = false
             }
 
             // 处理文本内容
             if (contentSource.content) {
-              if (isFirstTextChunk) {
+              // logger.silly('since contentSource.content is trusy, try to enqueue TEXT_START and TEXT_DELTA')
+              if (!accumulatingText) {
+                // logger.silly('enqueue TEXT_START')
                 controller.enqueue({
                   type: ChunkType.TEXT_START
                 } as TextStartChunk)
-                isFirstTextChunk = false
+                accumulatingText = true
               }
+              // logger.silly('enqueue TEXT_DELTA')
               controller.enqueue({
                 type: ChunkType.TEXT_DELTA,
                 text: contentSource.content
               })
+            } else {
+              accumulatingText = false
             }
 
             // 处理工具调用

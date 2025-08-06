@@ -76,6 +76,62 @@
     },
     "title": "エージェント"
   },
+  "apiServer": {
+    "actions": {
+      "copy": "コピー",
+      "regenerate": "再生成",
+      "restart": {
+        "button": "再起動",
+        "tooltip": "サーバーを再起動"
+      },
+      "start": "開始",
+      "stop": "停止"
+    },
+    "authHeader": {
+      "title": "認証ヘッダー"
+    },
+    "authHeaderText": "認証ヘッダーで使用：",
+    "configuration": "設定",
+    "description": "OpenAI 互換の HTTP API を通じて Cherry Studio の AI 機能を公開します",
+    "documentation": {
+      "title": "API ドキュメント"
+    },
+    "fields": {
+      "apiKey": {
+        "copyTooltip": "API キーをコピー",
+        "description": "API アクセスのための安全な認証トークン",
+        "label": "API キー",
+        "placeholder": "API キーは自動生成されます"
+      },
+      "port": {
+        "description": "HTTP サーバーの TCP ポート番号 (1000-65535)",
+        "helpText": "ポートを変更するにはサーバーを停止してください",
+        "label": "ポート"
+      },
+      "url": {
+        "copyTooltip": "URL をコピー",
+        "label": "URL"
+      }
+    },
+    "messages": {
+      "apiKeyCopied": "API キーがクリップボードにコピーされました",
+      "apiKeyRegenerated": "API キーが再生成されました",
+      "operationFailed": "API サーバーの操作に失敗しました：",
+      "restartError": "API サーバーの再起動に失敗しました：",
+      "restartFailed": "API サーバーの再起動に失敗しました：",
+      "restartSuccess": "API サーバーが正常に再起動されました",
+      "startError": "API サーバーの開始に失敗しました：",
+      "startSuccess": "API サーバーが正常に開始されました",
+      "stopError": "API サーバーの停止に失敗しました：",
+      "stopSuccess": "API サーバーが正常に停止されました",
+      "urlCopied": "サーバー URL がクリップボードにコピーされました"
+    },
+    "status": {
+      "running": "実行中",
+      "stopped": "停止中"
+    },
+    "title": "API サーバー"
+  },
   "assistants": {
     "abbr": "アシスタント",
     "clear": {
@@ -327,6 +383,15 @@
         "settings": "ウェブ検索設定"
       }
     },
+    "mcp": {
+      "error": {
+        "parse_tool_call": "有効なツール呼び出し形式に変換できません：{{toolCall}}"
+      },
+      "warning": {
+        "multiple_tools": "複数の一致するMCPツールが存在するため、{{tool}} が選択されました",
+        "no_tool": "必要なMCPツール {{tool}} が見つかりません"
+      }
+    },
     "message": {
       "new": {
         "branch": {
@@ -540,7 +605,7 @@
       "list": "トピックリスト",
       "move_to": "移動先",
       "new": "新しいトピック",
-      "pinned": "トピックを固定",
+      "pin": "トピックを固定",
       "prompt": {
         "edit": {
           "title": "トピック提示語を編集する"
@@ -549,7 +614,7 @@
         "tips": "トピック提示語：現在のトピックに対して追加の補足提示語を提供"
       },
       "title": "トピック",
-      "unpinned": "固定解除"
+      "unpin": "固定解除"
     },
     "translate": "翻訳"
   },
@@ -647,6 +712,7 @@
     "no_results": "検索結果なし",
     "open": "開く",
     "paste": "貼り付け",
+    "preview": "プレビュー",
     "prompt": "プロンプト",
     "provider": "プロバイダー",
     "reasoning_content": "深く考察済み",
@@ -655,6 +721,7 @@
     "rename": "名前を変更",
     "reset": "リセット",
     "save": "保存",
+    "saved": "保存されました",
     "search": "検索",
     "select": "選択",
     "selectedItems": "{{count}}件の項目を選択しました",
@@ -823,7 +890,7 @@
     "error": {
       "failed_to_create": "ナレッジベースの作成に失敗しました",
       "failed_to_edit": "ナレッジベースの編集に失敗しました",
-      "model_invalid": "モデルが選択されていないか、削除されています"
+      "model_invalid": "モデルが選択されていません"
     },
     "file_hint": "{{file_types}} 形式をサポート",
     "index_all": "すべてをインデックス",
@@ -864,7 +931,7 @@
     "search_placeholder": "検索するテキストを入力",
     "settings": {
       "preprocessing": "預処理",
-      "preprocessing_tooltip": "アップロードされたファイルのOCR預処理",
+      "preprocessing_tooltip": "アップロードされたファイルの預処理",
       "title": "ナレッジベース設定"
     },
     "sitemap_added": "追加成功",
@@ -1396,7 +1463,7 @@
       "function_calling": "ツール",
       "reasoning": "推論",
       "rerank": "再順序付け",
-      "select": "モデルタイプを選択",
+      "select": "モデルタイプ",
       "text": "テキスト",
       "vision": "画像",
       "websearch": "ウェブ検索"
@@ -1449,6 +1516,7 @@
         "image": "新しい画像"
       }
     },
+    "custom_size": "カスタムサイズ",
     "edit": {
       "image_file": "編集画像",
       "magic_prompt_option_tip": "編集効果を向上させるための提示詞を最適化します",
@@ -1493,6 +1561,7 @@
     "mode": {
       "edit": "部分編集",
       "generate": "画像生成",
+      "merge": "マージ",
       "remix": "混合",
       "upscale": "拡大"
     },
@@ -1522,7 +1591,7 @@
     "prompt_placeholder": "作成したい画像を説明します。例：夕日の湖畔、遠くに山々",
     "prompt_placeholder_edit": "画像の説明を入力します。テキスト描画には '二重引用符' を使用します",
     "prompt_placeholder_en": "「英語」の説明を入力します。Imagenは現在、英語のプロンプト語のみをサポートしています",
-    "proxy_required": "打開代理並開啟”TUN模式“查看生成圖片或複製到瀏覽器開啟，後續會支持國內直連",
+    "proxy_required": "打開代理並開啟TUN模式查看生成圖片或複製到瀏覽器開啟，後續會支持國內直連",
     "quality": "品質",
     "quality_options": {
       "auto": "自動",
@@ -1571,6 +1640,7 @@
     },
     "text_desc_required": "画像の説明を先に入力してください",
     "title": "画像",
+    "top_up": "チャージする",
     "translating": "翻訳中...",
     "uploaded_input": "アップロード済みの入力",
     "upscale": {
@@ -1594,6 +1664,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Anthropic",
+    "aws-bedrock": "AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "百川",
     "baidu-cloud": "Baidu Cloud",
@@ -2645,6 +2716,8 @@
       "jsonSaveError": "JSON設定の保存に失敗しました",
       "jsonSaveSuccess": "JSON設定が保存されました。",
       "logoUrl": "ロゴURL",
+      "longRunning": "長時間運行モード",
+      "longRunningTooltip": "このオプションを有効にすると、サーバーは長時間のタスクをサポートします。進行状況通知を受信すると、タイムアウトがリセットされ、最大実行時間が10分に延長されます。",
       "missingDependencies": "が不足しています。続行するにはインストールしてください。",
       "more": {
         "awesome": "厳選された MCP サーバーリスト",
@@ -2891,8 +2964,8 @@
           "tooltip": "例：GPT-4"
         },
         "supported_text_delta": {
-          "label": "インクリメンタルテキスト出力",
-          "tooltip": "モデルがサポートされていない場合は、ボタンを閉じます"
+          "label": "インクリメンタルテキスト出力のサポート",
+          "tooltip": "モデルがテキストをチャンクで返す場合、デフォルトで有効になっています。モデルがサポートしていない場合は、このオプションを無効にしてください"
         }
       },
       "api_key": "API キー",
@@ -2917,6 +2990,7 @@
         "select_api_key": "使用するAPIキーを選択：",
         "single": "単一",
         "start": "開始",
+        "timeout": "タイムアウト",
         "title": "モデル健康チェック",
         "use_all_keys": "キー"
       },
@@ -2930,6 +3004,7 @@
           "label": "リストにモデルを追加"
         },
         "add_whole_group": "グループ全体を追加",
+        "refetch_list": "モデルリストを再取得",
         "remove_listed": "リストからモデルを削除",
         "remove_model": "モデルを削除",
         "remove_whole_group": "グループ全体を削除"
@@ -2947,7 +3022,6 @@
       "provider_name": "プロバイダー名",
       "quick_assistant_default_tag": "デフォルト",
       "quick_assistant_model": "クイックアシスタントモデル",
-      "quick_assistant_model_description": "クイックアシスタントで使用されるデフォルトモデル",
       "quick_assistant_selection": "アシスタントを選択します",
       "topic_naming_model": "トピック命名モデル",
       "topic_naming_model_description": "新しいトピックを自動的に命名する際に使用されるモデル",
@@ -3023,6 +3097,21 @@
             "placeholder": "1つ以上のキーを入力してください"
           }
         },
+        "options": {
+          "array_content": {
+            "help": "このプロバイダーは、message の content フィールドが配列型であることをサポートしていますか",
+            "label": "配列形式のメッセージコンテンツをサポート"
+          },
+          "developer_role": {
+            "help": "このプロバイダーは role: \"developer\" のメッセージをサポートしていますか",
+            "label": "Developer Message をサポート"
+          },
+          "label": "API設定",
+          "stream_options": {
+            "help": "このプロバイダーは stream_options パラメータをサポートしていますか",
+            "label": "stream_options をサポート"
+          }
+        },
         "url": {
           "preview": "プレビュー: {{url}}",
           "reset": "リセット",
@@ -3035,6 +3124,16 @@
         "tip": "複数のキーはカンマまたはスペースで区切ります"
       },
       "api_version": "APIバージョン",
+      "aws-bedrock": {
+        "access_key_id": "AWS アクセスキー ID",
+        "access_key_id_help": "あなたの AWS アクセスキー ID は、AWS Bedrock サービスへのアクセスに使用されます",
+        "description": "AWS Bedrock は、Amazon が提供する完全に管理されたベースモデルサービスで、さまざまな最先端の大言語モデルをサポートしています",
+        "region": "AWS リージョン",
+        "region_help": "あなたの AWS サービスリージョン、例：us-east-1",
+        "secret_access_key": "AWS アクセスキー",
+        "secret_access_key_help": "あなたの AWS アクセスキー、安全に保管してください",
+        "title": "AWS Bedrock 設定"
+      },
       "azure": {
         "apiversion": {
           "tip": "Azure OpenAIのAPIバージョン。Response APIを使用する場合は、previewバージョンを入力してください"
@@ -3103,7 +3202,7 @@
       "docs_check": "チェック",
       "docs_more_details": "詳細を確認",
       "get_api_key": "APIキーを取得",
-      "is_not_support_array_content": "互換モードを有効にする",
+      "misc": "その他",
       "no_models_for_check": "チェックするモデルがありません（例：会話モデル）",
       "not_checked": "未チェック",
       "notes": {
@@ -3150,6 +3249,7 @@
     },
     "proxy": {
       "address": "プロキシアドレス",
+      "bypass": "バイパスルール",
       "mode": {
         "custom": "カスタムプロキシ",
         "none": "プロキシを使用しない",
@@ -3233,28 +3333,13 @@
     },
     "title": "設定",
     "tool": {
-      "ocr": {
-        "mac_system_ocr_options": {
-          "min_confidence": "最小信頼度",
-          "mode": {
-            "accurate": "正確",
-            "fast": "速い",
-            "title": "認識モード"
-          }
-        },
-        "provider": "OCRプロバイダー",
-        "provider_placeholder": "OCRプロバイダーを選択",
-        "title": "OCR（オーシーアール）"
-      },
       "preprocess": {
         "provider": "プレプロセスプロバイダー",
         "provider_placeholder": "前処理プロバイダーを選択してください",
-        "title": "前処理"
+        "title": "前処理",
+        "tooltip": "設定 → ツールで、ドキュメント前処理サービスプロバイダーを設定します。ドキュメント前処理は、複雑な形式のドキュメントやスキャンされたドキュメントの検索性能を効果的に向上させます。"
       },
-      "preprocessOrOcr": {
-        "tooltip": "設定 → ツールで、ドキュメント前処理サービスプロバイダーまたはOCRを設定します。ドキュメント前処理は、複雑な形式のドキュメントやスキャンされたドキュメントの検索性能を効果的に向上させます。OCRは、ドキュメント内の画像内のテキストまたはスキャンされたPDFテキストのみを認識できます。"
-      },
-      "title": "ツール設定",
+      "title": "その他の設定",
       "websearch": {
         "apikey": "APIキー",
         "blacklist": "ブラックリスト",

@@ -76,6 +76,62 @@
     },
     "title": "Agent intelligent"
   },
+  "apiServer": {
+    "actions": {
+      "copy": "Copier",
+      "regenerate": "Régénérer",
+      "restart": {
+        "button": "Redémarrer",
+        "tooltip": "Redémarrer le Serveur"
+      },
+      "start": "Démarrer",
+      "stop": "Arrêtez"
+    },
+    "authHeader": {
+      "title": "En-tête d'autorisation"
+    },
+    "authHeaderText": "Utiliser dans l'en-tête d'autorisation :",
+    "configuration": "Configuration",
+    "description": "Expose les capacités IA de Cherry Studio via des APIs HTTP compatibles OpenAI",
+    "documentation": {
+      "title": "Documentation API"
+    },
+    "fields": {
+      "apiKey": {
+        "copyTooltip": "Copier la Clé API",
+        "description": "Jeton d'authentification sécurisé pour l'accès à l'API",
+        "label": "Clé API",
+        "placeholder": "La clé API sera générée automatiquement"
+      },
+      "port": {
+        "description": "Numéro de port TCP pour le serveur HTTP (1000-65535)",
+        "helpText": "Arrêtez le serveur pour changer le port",
+        "label": "Port"
+      },
+      "url": {
+        "copyTooltip": "Copier l'URL",
+        "label": "URL"
+      }
+    },
+    "messages": {
+      "apiKeyCopied": "Clé API copiée dans le presse-papiers",
+      "apiKeyRegenerated": "Clé API régénérée",
+      "operationFailed": "Opération du Serveur API échouée : ",
+      "restartError": "Échec du redémarrage du Serveur API : ",
+      "restartFailed": "Redémarrage du Serveur API échoué : ",
+      "restartSuccess": "Serveur API redémarré avec succès",
+      "startError": "Échec du démarrage du Serveur API : ",
+      "startSuccess": "Serveur API démarré avec succès",
+      "stopError": "Échec de l'arrêt du Serveur API : ",
+      "stopSuccess": "Serveur API arrêté avec succès",
+      "urlCopied": "URL du serveur copiée dans le presse-papiers"
+    },
+    "status": {
+      "running": "En cours d'exécution",
+      "stopped": "Arrêté"
+    },
+    "title": "Serveur API"
+  },
   "assistants": {
     "abbr": "Aide",
     "clear": {
@@ -327,6 +383,15 @@
         "settings": "Paramètres de recherche en ligne"
       }
     },
+    "mcp": {
+      "error": {
+        "parse_tool_call": "Impossible de convertir au format d'appel d'outil valide : {{toolCall}}"
+      },
+      "warning": {
+        "multiple_tools": "Il existe plusieurs outils MCP correspondants, {{tool}} a été sélectionné",
+        "no_tool": "Aucun outil MCP requis {{tool}} n'a été trouvé"
+      }
+    },
     "message": {
       "new": {
         "branch": {
@@ -540,7 +605,7 @@
       "list": "Liste des sujets",
       "move_to": "Déplacer vers",
       "new": "Commencer une nouvelle conversation",
-      "pinned": "Fixer le sujet",
+      "pin": "Fixer le sujet",
       "prompt": {
         "edit": {
           "title": "Modifier les indicateurs de sujet"
@@ -549,7 +614,7 @@
         "tips": "Indicateurs de sujet : fournir des indications supplémentaires pour le sujet actuel"
       },
       "title": "Sujet",
-      "unpinned": "Annuler le fixage"
+      "unpin": "Annuler le fixage"
     },
     "translate": "Traduire"
   },
@@ -647,6 +712,7 @@
     "no_results": "Aucun résultat",
     "open": "Ouvrir",
     "paste": "Coller",
+    "preview": "Aperçu",
     "prompt": "Prompt",
     "provider": "Fournisseur",
     "reasoning_content": "Réflexion approfondie",
@@ -655,6 +721,7 @@
     "rename": "Renommer",
     "reset": "Réinitialiser",
     "save": "Enregistrer",
+    "saved": "enregistré",
     "search": "Rechercher",
     "select": "Sélectionner",
     "selectedItems": "{{count}} éléments sélectionnés",
@@ -1396,7 +1463,7 @@
       "function_calling": "Appel de fonction",
       "reasoning": "Raisonnement",
       "rerank": "Reclasser",
-      "select": "Sélectionnez le type de modèle",
+      "select": "Types de modèle",
       "text": "Texte",
       "vision": "Image",
       "websearch": "Recherche web"
@@ -1449,6 +1516,7 @@
         "image": "Nouvelle image"
       }
     },
+    "custom_size": "Dimensions personnalisées",
     "edit": {
       "image_file": "Image éditée",
       "magic_prompt_option_tip": "Optimisation intelligente du mot-clé d'édition",
@@ -1571,6 +1639,7 @@
     },
     "text_desc_required": "Veuillez d'abord saisir la description de l'image",
     "title": "Image",
+    "top_up": "recharge",
     "translating": "Traduction en cours...",
     "uploaded_input": "Entrée téléchargée",
     "upscale": {
@@ -1594,6 +1663,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Anthropic",
+    "aws-bedrock": "AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "BaiChuan",
     "baidu-cloud": "Baidu Cloud Qianfan",
@@ -2930,6 +3000,7 @@
           "label": "Ajouter le modèle dans la liste"
         },
         "add_whole_group": "Ajouter tout le groupe",
+        "refetch_list": "Récupérer à nouveau la liste des modèles",
         "remove_listed": "Supprimer un modèle de la liste",
         "remove_model": "Supprimer le modèle",
         "remove_whole_group": "Supprimer tout le groupe"
@@ -2947,7 +3018,6 @@
       "provider_name": "Nom du fournisseur",
       "quick_assistant_default_tag": "Par défaut",
       "quick_assistant_model": "Modèle de l'assistant rapide",
-      "quick_assistant_model_description": "Modèle par défaut utilisé par l'assistant rapide",
       "quick_assistant_selection": "Sélectionner l'assistant",
       "topic_naming_model": "Modèle de renommage des sujets",
       "topic_naming_model_description": "Modèle utilisé pour le renommage automatique des nouveaux sujets",
@@ -3023,6 +3093,21 @@
             "placeholder": "Saisir une ou plusieurs clés"
           }
         },
+        "options": {
+          "array_content": {
+            "help": "Ce fournisseur prend-il en charge le champ content du message sous forme de tableau ?",
+            "label": "Prise en charge du format de tableau pour le contenu du message"
+          },
+          "developer_role": {
+            "help": "Le fournisseur prend-il en charge les messages avec le rôle : « développeur » ?",
+            "label": "Prise en charge du message développeur"
+          },
+          "label": "Paramètres de l'API",
+          "stream_options": {
+            "help": "Le fournisseur prend-il en charge le paramètre stream_options ?",
+            "label": "Prise en charge des options de flux"
+          }
+        },
         "url": {
           "preview": "Aperçu : {{url}}",
           "reset": "Réinitialiser",
@@ -3035,6 +3120,16 @@
         "tip": "Séparer les clés multiples par des virgules"
       },
       "api_version": "Version API",
+      "aws-bedrock": {
+        "access_key_id": "Identifiant de clé d'accès AWS",
+        "access_key_id_help": "Votre identifiant de clé d'accès AWS, utilisé pour accéder au service AWS Bedrock",
+        "description": "AWS Bedrock est un service de modèles de base entièrement géré proposé par Amazon, prenant en charge divers grands modèles linguistiques avancés.",
+        "region": "Région AWS",
+        "region_help": "Votre région de service AWS, par exemple us-east-1",
+        "secret_access_key": "Clés d'accès AWS",
+        "secret_access_key_help": "Votre clé d'accès AWS, veuillez la conserver en lieu sûr",
+        "title": "Configuration AWS Bedrock"
+      },
       "azure": {
         "apiversion": {
           "tip": "Version de l'API Azure OpenAI, veuillez saisir une version preview si vous souhaitez utiliser l'API de réponse"
@@ -3103,7 +3198,7 @@
       "docs_check": "Voir",
       "docs_more_details": "Obtenir plus de détails",
       "get_api_key": "Cliquez ici pour obtenir une clé",
-      "is_not_support_array_content": "Activer le mode compatible",
+      "misc": "autre",
       "no_models_for_check": "Aucun modèle détectable (par exemple, modèle de chat)",
       "not_checked": "Non vérifié",
       "notes": {
@@ -3150,6 +3245,7 @@
     },
     "proxy": {
       "address": "Adresse du proxy",
+      "bypass": "Règles de contournement",
       "mode": {
         "custom": "Proxy personnalisé",
         "none": "Ne pas utiliser de proxy",
@@ -3233,25 +3329,10 @@
     },
     "title": "Paramètres",
     "tool": {
-      "ocr": {
-        "mac_system_ocr_options": {
-          "min_confidence": "Confiance minimale",
-          "mode": {
-            "accurate": "Précis",
-            "fast": "Rapide",
-            "title": "Mode de Reconnaissance"
-          }
-        },
-        "provider": "Fournisseur OCR",
-        "provider_placeholder": "Sélectionnez un fournisseur OCR",
-        "title": "Reconnaissance de texte OCR"
-      },
       "preprocess": {
-        "provider": "Fournisseur de traitement préalable de documents",
-        "provider_placeholder": "Sélectionnez un fournisseur de traitement préalable de documents",
-        "title": "Traitement Préliminaire de Documents"
-      },
-      "preprocessOrOcr": {
+        "provider": "fournisseur de services de prétraitement de documents",
+        "provider_placeholder": "Choisissez un prestataire de traitement de documents",
+        "title": "Prétraitement des documents",
         "tooltip": "Configurer un fournisseur de prétraitement de documents ou OCR dans Paramètres -> Outils. Le prétraitement des documents améliore efficacement la précision de recherche pour les documents à format complexe ou les versions scannées, tandis que l'OCR permet uniquement d'extraire le texte contenu dans les images ou les PDF scannés."
       },
       "title": "Paramètres des outils",

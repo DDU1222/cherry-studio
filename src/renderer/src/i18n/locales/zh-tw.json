@@ -76,6 +76,62 @@
     },
     "title": "智慧代理人"
   },
+  "apiServer": {
+    "actions": {
+      "copy": "複製",
+      "regenerate": "重新生成",
+      "restart": {
+        "button": "重新啟動",
+        "tooltip": "重新啟動伺服器"
+      },
+      "start": "啟動",
+      "stop": "停止"
+    },
+    "authHeader": {
+      "title": "授權標頭"
+    },
+    "authHeaderText": "在授權標頭中使用：",
+    "configuration": "配置",
+    "description": "透過 OpenAI 相容的 HTTP API 公開 Cherry Studio 的 AI 功能",
+    "documentation": {
+      "title": "API 文件"
+    },
+    "fields": {
+      "apiKey": {
+        "copyTooltip": "複製 API 金鑰",
+        "description": "用於 API 訪問的安全認證令牌",
+        "label": "API 金鑰",
+        "placeholder": "API 金鑰將自動生成"
+      },
+      "port": {
+        "description": "HTTP 伺服器的 TCP 連接埠 (1000-65535)",
+        "helpText": "停止伺服器以變更連接埠",
+        "label": "連接埠"
+      },
+      "url": {
+        "copyTooltip": "複製 URL",
+        "label": "URL"
+      }
+    },
+    "messages": {
+      "apiKeyCopied": "API 金鑰已複製到剪貼簿",
+      "apiKeyRegenerated": "API 金鑰已重新生成",
+      "operationFailed": "API 伺服器操作失敗：",
+      "restartError": "重新啟動 API 伺服器失敗：",
+      "restartFailed": "API 伺服器重新啟動失敗：",
+      "restartSuccess": "API 伺服器重新啟動成功",
+      "startError": "啟動 API 伺服器失敗：",
+      "startSuccess": "API 伺服器啟動成功",
+      "stopError": "停止 API 伺服器失敗：",
+      "stopSuccess": "API 伺服器停止成功",
+      "urlCopied": "伺服器 URL 已複製到剪貼簿"
+    },
+    "status": {
+      "running": "執行中",
+      "stopped": "已停止"
+    },
+    "title": "API 伺服器"
+  },
   "assistants": {
     "abbr": "助手",
     "clear": {
@@ -327,6 +383,15 @@
         "settings": "網路搜尋設定"
       }
     },
+    "mcp": {
+      "error": {
+        "parse_tool_call": "無法轉換為有效的工具呼叫格式：{{toolCall}}"
+      },
+      "warning": {
+        "multiple_tools": "存在多個匹配的MCP工具，已選擇 {{tool}}",
+        "no_tool": "未匹配到所需的MCP工具 {{tool}}"
+      }
+    },
     "message": {
       "new": {
         "branch": {
@@ -540,7 +605,7 @@
       "list": "話題列表",
       "move_to": "移動到",
       "new": "開始新對話",
-      "pinned": "固定話題",
+      "pin": "固定話題",
       "prompt": {
         "edit": {
           "title": "編輯話題提示詞"
@@ -549,7 +614,7 @@
         "tips": "話題提示詞：針對目前話題提供額外的補充提示詞"
       },
       "title": "話題",
-      "unpinned": "取消固定"
+      "unpin": "取消固定"
     },
     "translate": "翻譯"
   },
@@ -647,6 +712,7 @@
     "no_results": "沒有結果",
     "open": "開啟",
     "paste": "貼上",
+    "preview": "預覽",
     "prompt": "提示詞",
     "provider": "供應商",
     "reasoning_content": "已深度思考",
@@ -655,6 +721,7 @@
     "rename": "重新命名",
     "reset": "重設",
     "save": "儲存",
+    "saved": "已儲存",
     "search": "搜尋",
     "select": "選擇",
     "selectedItems": "已選擇 {{count}} 項",
@@ -823,7 +890,7 @@
     "error": {
       "failed_to_create": "知識庫創建失敗",
       "failed_to_edit": "知識庫編輯失敗",
-      "model_invalid": "未選擇模型或已刪除"
+      "model_invalid": "未選擇模型"
     },
     "file_hint": "支援 {{file_types}} 格式",
     "index_all": "索引全部",
@@ -1396,7 +1463,7 @@
       "function_calling": "工具",
       "reasoning": "推理",
       "rerank": "重排",
-      "select": "選擇模型類型",
+      "select": "模型類型",
       "text": "文字",
       "vision": "視覺",
       "websearch": "網路搜尋"
@@ -1449,6 +1516,7 @@
         "image": "新繪圖"
       }
     },
+    "custom_size": "自訂尺寸",
     "edit": {
       "image_file": "編輯圖像",
       "magic_prompt_option_tip": "智能優化編輯提示詞",
@@ -1493,6 +1561,7 @@
     "mode": {
       "edit": "編輯",
       "generate": "繪圖",
+      "merge": "合併",
       "remix": "混合",
       "upscale": "放大"
     },
@@ -1521,7 +1590,7 @@
     "prompt_enhancement_tip": "開啟後將提示重寫為詳細的、適合模型的版本",
     "prompt_placeholder": "描述你想建立的圖片，例如：一個寧靜的湖泊，夕陽西下，遠處是群山",
     "prompt_placeholder_edit": "輸入你的圖片描述，文本繪製用 ' 雙引號 ' 包裹",
-    "prompt_placeholder_en": "輸入” 英文 “圖片描述，目前 Imagen 僅支持英文提示詞",
+    "prompt_placeholder_en": "輸入英文圖片描述，目前 Imagen 僅支持英文提示詞",
     "proxy_required": "打開代理並開啟”TUN 模式 “查看生成圖片或複製到瀏覽器開啟，後續會支持國內直連",
     "quality": "品質",
     "quality_options": {
@@ -1571,6 +1640,7 @@
     },
     "text_desc_required": "請先輸入圖片描述",
     "title": "繪圖",
+    "top_up": "儲值",
     "translating": "翻譯中...",
     "uploaded_input": "已上傳輸入",
     "upscale": {
@@ -1594,6 +1664,7 @@
     "aihubmix": "AiHubMix",
     "alayanew": "Alaya NeW",
     "anthropic": "Anthropic",
+    "aws-bedrock": "AWS Bedrock",
     "azure-openai": "Azure OpenAI",
     "baichuan": "百川",
     "baidu-cloud": "百度雲千帆",
@@ -2645,6 +2716,8 @@
       "jsonSaveError": "保存 JSON 配置失敗",
       "jsonSaveSuccess": "JSON 配置已儲存",
       "logoUrl": "標誌網址",
+      "longRunning": "長時間運行模式",
+      "longRunningTooltip": "啟用後，伺服器支援長時間任務，接收到進度通知時會重置超時計時器，並延長最大超時時間至10分鐘",
       "missingDependencies": "缺失，請安裝它以繼續",
       "more": {
         "awesome": "精選的 MCP 伺服器清單",
@@ -2891,8 +2964,8 @@
           "tooltip": "例如 GPT-4"
         },
         "supported_text_delta": {
-          "label": "增量文本輸出",
-          "tooltip": "當模型不支持的時候，將該按鈕關閉"
+          "label": "支持增量文本輸出",
+          "tooltip": "模型每次返回文本增量，而不是一次性返回所有文本，預設開啟，如果模型不支持，請關閉"
         }
       },
       "api_key": "API 密鑰",
@@ -2917,6 +2990,7 @@
         "select_api_key": "選擇要使用的 API 密鑰：",
         "single": "單個",
         "start": "開始",
+        "timeout": "超時",
         "title": "模型健康檢查",
         "use_all_keys": "使用密鑰"
       },
@@ -2930,6 +3004,7 @@
           "label": "新增列表中的模型"
         },
         "add_whole_group": "新增整個分組",
+        "refetch_list": "重新獲取模型列表",
         "remove_listed": "移除列表中的模型",
         "remove_model": "移除模型",
         "remove_whole_group": "移除整個分組"
@@ -2947,7 +3022,6 @@
       "provider_name": "提供者名稱",
       "quick_assistant_default_tag": "預設",
       "quick_assistant_model": "快捷助手模型",
-      "quick_assistant_model_description": "快捷助手使用的預設模型",
       "quick_assistant_selection": "選擇助手",
       "topic_naming_model": "話題命名模型",
       "topic_naming_model_description": "自動命名新話題時使用的模型",
@@ -3023,6 +3097,21 @@
             "placeholder": "輸入一個或多個密鑰"
           }
         },
+        "options": {
+          "array_content": {
+            "help": "該提供商是否支援 message 的 content 欄位為 array 類型",
+            "label": "支援陣列格式的 message content"
+          },
+          "developer_role": {
+            "help": "該提供商是否支援 role: \"developer\" 的訊息",
+            "label": "支援開發人員訊息"
+          },
+          "label": "API 設定",
+          "stream_options": {
+            "help": "該提供商是否支援 stream_options 參數",
+            "label": "支援 stream_options"
+          }
+        },
         "url": {
           "preview": "預覽：{{url}}",
           "reset": "重設",
@@ -3035,6 +3124,16 @@
         "tip": "多個金鑰使用逗號或空格分隔"
       },
       "api_version": "API 版本",
+      "aws-bedrock": {
+        "access_key_id": "AWS 存取密鑰 ID",
+        "access_key_id_help": "您的 AWS 存取密鑰 ID，用於存取 AWS Bedrock 服務",
+        "description": "AWS Bedrock 是亞馬遜提供的全托管基础模型服務，支持多種先進的大語言模型",
+        "region": "AWS 區域",
+        "region_help": "您的 AWS 服務區域，例如 us-east-1",
+        "secret_access_key": "AWS 存取密鑰",
+        "secret_access_key_help": "您的 AWS 存取密鑰，請妥善保管",
+        "title": "AWS Bedrock 設定"
+      },
       "azure": {
         "apiversion": {
           "tip": "Azure OpenAI 的 API 版本，如果想要使用 Response API，請輸入 preview 版本"
@@ -3103,7 +3202,7 @@
       "docs_check": "檢查",
       "docs_more_details": "檢視更多細節",
       "get_api_key": "點選這裡取得金鑰",
-      "is_not_support_array_content": "開啟相容模式",
+      "misc": "其他",
       "no_models_for_check": "沒有可以被檢查的模型（例如對話模型）",
       "not_checked": "未檢查",
       "notes": {
@@ -3150,6 +3249,7 @@
     },
     "proxy": {
       "address": "代理伺服器位址",
+      "bypass": "代理略過規則",
       "mode": {
         "custom": "自訂代理伺服器",
         "none": "不使用代理伺服器",
@@ -3233,28 +3333,13 @@
     },
     "title": "設定",
     "tool": {
-      "ocr": {
-        "mac_system_ocr_options": {
-          "min_confidence": "最小置信度",
-          "mode": {
-            "accurate": "準確",
-            "fast": "快速",
-            "title": "識別模式"
-          }
-        },
-        "provider": "OCR 供應商",
-        "provider_placeholder": "選擇一個OCR服務提供商",
-        "title": "OCR 文字識別"
-      },
       "preprocess": {
         "provider": "前置處理供應商",
         "provider_placeholder": "選擇一個預處理供應商",
-        "title": "前置處理"
+        "title": "前置處理",
+        "tooltip": "在「設定」->「工具」中設定文件預處理服務供應商。文件預處理可有效提升複雜格式文件及掃描文件的檢索效能"
       },
-      "preprocessOrOcr": {
-        "tooltip": "在「設定」->「工具」中設定文件預處理服務供應商或OCR。文件預處理可有效提升複雜格式文件及掃描文件的檢索效能，而OCR僅能辨識文件內圖片文字或掃描PDF文字。"
-      },
-      "title": "工具設定",
+      "title": "其他設定",
       "websearch": {
         "apikey": "API 金鑰",
         "blacklist": "黑名單",

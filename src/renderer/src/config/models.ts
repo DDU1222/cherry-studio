@@ -191,7 +191,9 @@ const visionAllowedModels = [
   `gemma3(?:-[\\w-]+)`,
   'kimi-vl-a3b-thinking(?:-[\\w-]+)?',
   'llama-guard-4(?:-[\\w-]+)?',
-  'llama-4(?:-[\\w-]+)?'
+  'llama-4(?:-[\\w-]+)?',
+  'step-1o(?:.*vision)?',
+  'step-1v(?:-[\\w-]+)?'
 ]
 
 const visionExcludedModels = [
@@ -2345,7 +2347,16 @@ export const SYSTEM_MODELS: Record<string, Model[]> = {
       group: 'google'
     }
   ],
-  'new-api': []
+  'new-api': [],
+  'aws-bedrock': [],
+  poe: [
+    {
+      id: 'gpt-4o',
+      name: 'GPT-4o',
+      provider: 'poe',
+      group: 'poe'
+    }
+  ]
 }
 
 export const TEXT_TO_IMAGES_MODELS = [
@@ -2580,6 +2591,7 @@ export function isOpenAIWebSearchModel(model: Model): boolean {
   )
 }
 
+/** 用于判断是否支持控制思考，但不一定以reasoning_effort的方式 */
 export function isSupportedThinkingTokenModel(model?: Model): boolean {
   if (!model) {
     return false
@@ -2662,6 +2674,17 @@ export function isQwenReasoningModel(model?: Model): boolean {
     return false
   }
 
+  const baseName = getLowerBaseModelName(model.id, '/')
+
+  if (baseName.startsWith('qwen3')) {
+    if (baseName.includes('thinking')) {
+      return true
+    } else if (baseName.includes('instruct')) {
+      return false
+    }
+    return true
+  }
+
   if (isSupportedThinkingTokenQwenModel(model)) {
     return true
   }
@@ -2680,27 +2703,42 @@ export function isSupportedThinkingTokenQwenModel(model?: Model): boolean {
 
   const baseName = getLowerBaseModelName(model.id, '/')
 
-  if (baseName.includes('coder') || baseName.includes('qwen3-235b-a22b-instruct')) {
+  if (baseName.includes('coder')) {
     return false
   }
 
-  return (
-    baseName.startsWith('qwen3') ||
-    [
-      'qwen-plus',
-      'qwen-plus-latest',
-      'qwen-plus-0428',
-      'qwen-plus-2025-04-28',
-      'qwen-plus-0714',
-      'qwen-plus-2025-07-14',
-      'qwen-turbo',
-      'qwen-turbo-latest',
-      'qwen-turbo-0428',
-      'qwen-turbo-2025-04-28',
-      'qwen-turbo-0715',
-      'qwen-turbo-2025-07-15'
-    ].includes(baseName)
-  )
+  if (baseName.startsWith('qwen3')) {
+    if (baseName.includes('instruct')) {
+      return false
+    }
+    if (baseName.includes('thinking')) {
+      return true
+    }
+    return true
+  }
+
+  return [
+    'qwen-plus',
+    'qwen-plus-latest',
+    'qwen-plus-0428',
+    'qwen-plus-2025-04-28',
+    'qwen-plus-0714',
+    'qwen-plus-2025-07-14',
+    'qwen-turbo',
+    'qwen-turbo-latest',
+    'qwen-turbo-0428',
+    'qwen-turbo-2025-04-28',
+    'qwen-turbo-0715',
+    'qwen-turbo-2025-07-15'
+  ].includes(baseName)
+}
+
+export function isQwen3235BA22BThinkingModel(model?: Model): boolean {
+  if (!model) {
+    return false
+  }
+  const baseName = getLowerBaseModelName(model.id, '/')
+  return baseName.includes('qwen3-235b-a22b-thinking')
 }
 
 export function isSupportedThinkingTokenDoubaoModel(model?: Model): boolean {
@@ -2766,6 +2804,14 @@ export const isZhipuReasoningModel = (model?: Model): boolean => {
   return isSupportedThinkingTokenZhipuModel(model) || model.id.toLowerCase().includes('glm-z1')
 }
 
+export const isStepReasoningModel = (model?: Model): boolean => {
+  if (!model) {
+    return false
+  }
+  const baseName = getLowerBaseModelName(model.id)
+  return baseName.includes('step-3') || baseName.includes('step-r1-v-mini')
+}
+
 export function isReasoningModel(model?: Model): boolean {
   if (!model || isEmbeddingModel(model) || isRerankModel(model) || isTextToImageModel(model)) {
     return false
@@ -2793,6 +2839,7 @@ export function isReasoningModel(model?: Model): boolean {
     isHunyuanReasoningModel(model) ||
     isPerplexityReasoningModel(model) ||
     isZhipuReasoningModel(model) ||
+    isStepReasoningModel(model) ||
     model.id.toLowerCase().includes('magistral') ||
     model.id.toLowerCase().includes('minimax-m1') ||
     model.id.toLowerCase().includes('pangu-pro-moe')
@@ -3061,12 +3108,15 @@ export const THINKING_TOKEN_MAP: Record<string, { min: number; max: number }> = 
   'gemini-.*-pro.*$': { min: 128, max: 32768 },
 
   // Qwen models
-  'qwen3-235b-a22b-thinking(?:-[\\w-]+)$': { min: 0, max: 81_920 },
-  'qwen-plus-.*$': { min: 0, max: 38912 },
-  'qwen-turbo-.*$': { min: 0, max: 38912 },
-  'qwen3-0\\.6b$': { min: 0, max: 30720 },
-  'qwen3-1\\.7b$': { min: 0, max: 30720 },
-  'qwen3-.*$': { min: 1024, max: 38912 },
+  'qwen3-235b-a22b-thinking-2507$': { min: 0, max: 81_920 },
+  'qwen3-30b-a3b-thinking-2507$': { min: 0, max: 81_920 },
+  'qwen-plus-2025-07-28$': { min: 0, max: 81_920 },
+  'qwen-plus-latest$': { min: 0, max: 81_920 },
+  'qwen3-1\\.7b$': { min: 0, max: 30_720 },
+  'qwen3-0\\.6b$': { min: 0, max: 30_720 },
+  'qwen-plus.*$': { min: 0, max: 38_912 },
+  'qwen-turbo.*$': { min: 0, max: 38_912 },
+  'qwen3-.*$': { min: 1024, max: 38_912 },
 
   // Claude models
   'claude-3[.-]7.*sonnet.*$': { min: 1024, max: 64000 },

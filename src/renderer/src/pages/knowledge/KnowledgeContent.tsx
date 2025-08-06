@@ -139,8 +139,8 @@ const KnowledgeContent: FC<KnowledgeContentProps> = ({ selectedBase }) => {
               </div>
             </Tooltip>
             {base.rerankModel && <Tag style={{ borderRadius: 20, margin: 0 }}>{base.rerankModel.name}</Tag>}
-            {base.preprocessOrOcrProvider && base.preprocessOrOcrProvider.type === 'preprocess' && (
-              <QuotaTag base={base} providerId={base.preprocessOrOcrProvider?.provider.id} quota={quota} />
+            {base.preprocessProvider && base.preprocessProvider.type === 'preprocess' && (
+              <QuotaTag base={base} providerId={base.preprocessProvider?.provider.id} quota={quota} />
             )}
           </div>
         </ModelInfo>
@@ -289,9 +289,12 @@ export const ItemHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   position: absolute;
-  top: calc(var(--navbar-height) + 14px);
   right: 16px;
   z-index: 1000;
+  top: calc(var(--navbar-height) + 12px);
+  [navbar-position='top'] & {
+    top: calc(var(--navbar-height) + 10px);
+  }
 `
 
 export const StatusIconWrapper = styled.div`

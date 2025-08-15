@@ -187,6 +187,7 @@
         "label": "Longitud de Cadena de Razonamiento",
         "low": "Corto",
         "medium": "Medio",
+        "minimal": "minimal",
         "off": "Apagado"
       },
       "regular_phrases": {
@@ -404,7 +405,10 @@
       "regenerate": {
         "model": "Cambiar modelo"
       },
-      "useful": "Útil"
+      "useful": {
+        "label": "establecer como contexto",
+        "tip": "En este grupo de mensajes, este mensaje se seleccionará para unirse al contexto"
+      }
     },
     "multiple": {
       "select": {
@@ -483,7 +487,32 @@
         },
         "title": "Guardar en la base de conocimientos"
       },
-      "label": "Guardar"
+      "label": "Guardar",
+      "topic": {
+        "knowledge": {
+          "content": {
+            "maintext": {
+              "description": "Incluye el título del tema y el contenido principal de todos los mensajes."
+            }
+          },
+          "empty": {
+            "no_content": "Este tema no tiene contenido guardable."
+          },
+          "error": {
+            "save_failed": "Error al guardar el tema, verifica la configuración de la base de conocimientos"
+          },
+          "loading": "Analizando el contenido del tema...",
+          "select": {
+            "content": {
+              "label": "Seleccionar el tipo de contenido que desea guardar",
+              "selected_tip": "Se han seleccionado {{count}} elementos, de {{messages}} mensajes",
+              "tip": "El tema se guardará en la base de conocimientos en forma de contexto de conversación completo."
+            }
+          },
+          "success": "El tema se ha guardado correctamente en la base de conocimiento ({{count}} elementos)",
+          "title": "Guardar tema en la base de conocimientos"
+        }
+      }
     },
     "settings": {
       "code": {
@@ -505,6 +534,7 @@
         "tip": "En la barra de herramientas de bloques de código ejecutables se mostrará un botón de ejecución. ¡Tenga cuidado en no ejecutar código peligroso!",
         "title": "Ejecución de Código"
       },
+      "code_image_tools": "Activar herramientas de vista previa",
       "code_wrappable": "Bloques de código reemplazables",
       "context_count": {
         "label": "Número de contextos",
@@ -648,15 +678,6 @@
     },
     "expand": "Expandir",
     "more": "Más",
-    "preview": {
-      "copy": {
-        "image": "Copiar como imagen"
-      },
-      "label": "Vista previa",
-      "source": "Ver código fuente",
-      "zoom_in": "Acercar",
-      "zoom_out": "Alejar"
-    },
     "run": "Ejecutar código",
     "split": {
       "label": "Dividir vista",
@@ -756,6 +777,9 @@
       "file_format": "Formato de archivo de copia de seguridad incorrecto"
     },
     "chat": {
+      "chunk": {
+        "non_json": "Devuelve un formato de datos no válido"
+      },
       "response": "Ha ocurrido un error, si no ha configurado la clave API, vaya a Configuración > Proveedor de modelos para configurar la clave"
     },
     "http": {
@@ -1159,6 +1183,9 @@
       "failed": "Eliminación fallida",
       "success": "Eliminación exitosa"
     },
+    "dialog": {
+      "failed": "Error de vista previa"
+    },
     "download": {
       "failed": "Descarga fallida",
       "success": "Descarga exitosa"
@@ -1561,6 +1588,7 @@
     "mode": {
       "edit": "Editar",
       "generate": "Generar imagen",
+      "merge": "combinar",
       "remix": "Mezclar",
       "upscale": "Ampliar"
     },
@@ -1653,6 +1681,22 @@
       "seed_tip": "Controla la aleatoriedad del resultado de la ampliación"
     }
   },
+  "preview": {
+    "copy": {
+      "image": "Copiar como imagen"
+    },
+    "dialog": "Abrir la ventana de vista previa",
+    "label": "Vista previa",
+    "pan": "moverse",
+    "pan_down": "Mover hacia abajo",
+    "pan_left": "Desplazarse hacia la izquierda",
+    "pan_right": "Desplazarse hacia la derecha",
+    "pan_up": "Mover hacia arriba",
+    "reset": "Restablecer",
+    "source": "Ver código fuente",
+    "zoom_in": "ampliar",
+    "zoom_out": "reducir"
+  },
   "prompts": {
     "explanation": "Ayúdame a explicar este concepto",
     "summarize": "Ayúdame a resumir este párrafo",
@@ -1700,6 +1744,7 @@
     "openrouter": "OpenRouter",
     "perplexity": "Perplejidad",
     "ph8": "Plataforma Abierta de Grandes Modelos PH8",
+    "poe": "Poe",
     "ppio": "PPIO Cloud Piao",
     "qiniu": "Qiniu AI",
     "qwenlm": "QwenLM",
@@ -2210,7 +2255,13 @@
       },
       "nutstore": {
         "backup": {
-          "button": "Hacer copia de seguridad en Nutstore"
+          "button": "Hacer copia de seguridad en Nutstore",
+          "modal": {
+            "filename": {
+              "placeholder": "Por favor, introduzca el nombre del archivo de copia de seguridad"
+            },
+            "title": "Copia de seguridad en Nutstore"
+          }
         },
         "checkConnection": {
           "fail": "Fallo en la conexión con Nutstore",
@@ -2244,7 +2295,11 @@
           "title": "Ruta de almacenamiento de Nutstore"
         },
         "restore": {
-          "button": "Restaurar desde Nutstore"
+          "button": "Restaurar desde Nutstore",
+          "confirm": {
+            "content": "Restaurar desde Nutstore sobrescribirá los datos actuales, ¿deseas continuar?",
+            "title": "Restaurar desde Nutstore"
+          }
         },
         "title": "Configuración de Nutstore",
         "username": "Nombre de usuario de Nutstore"
@@ -2509,6 +2564,7 @@
     },
     "developer": {
       "enable_developer_mode": "Habilitar modo de desarrollador",
+      "help": "Una vez habilitado el modo de desarrollador, se podrá utilizar la función de cadena de llamadas para ver el flujo de datos del proceso de invocación del modelo.",
       "title": "Modo de Desarrollador"
     },
     "display": {
@@ -2715,6 +2771,8 @@
       "jsonSaveError": "Fallo al guardar la configuración JSON",
       "jsonSaveSuccess": "Configuración JSON guardada exitosamente",
       "logoUrl": "URL del logotipo",
+      "longRunning": "Modo de ejecución prolongada",
+      "longRunningTooltip": "Una vez habilitado, el servidor admite tareas de larga duración, reinicia el temporizador de tiempo de espera al recibir notificaciones de progreso y amplía el tiempo máximo de espera hasta 10 minutos.",
       "missingDependencies": "Faltan, instalelas para continuar",
       "more": {
         "awesome": "Lista seleccionada de servidores MCP",
@@ -2987,6 +3045,7 @@
         "select_api_key": "Seleccionar clave API a usar:",
         "single": "Individual",
         "start": "Iniciar",
+        "timeout": "Tiempo de espera agotado",
         "title": "Verificación de salud del modelo",
         "use_all_keys": "Usar todas las claves"
       },
@@ -3050,6 +3109,9 @@
         "auto": "Automático",
         "default": "Predeterminado",
         "flex": "Flexible",
+        "on_demand": "según demanda",
+        "performance": "rendimiento",
+        "priority": "prioridad",
         "tip": "Especifica el nivel de latencia utilizado para procesar la solicitud",
         "title": "Nivel de servicio"
       },
@@ -3061,7 +3123,14 @@
         "tip": "Resumen de la inferencia realizada por el modelo",
         "title": "Modo de resumen"
       },
-      "title": "Configuración de OpenAI"
+      "title": "Configuración de OpenAI",
+      "verbosity": {
+        "high": "alto",
+        "low": "bajo",
+        "medium": "medio",
+        "tip": "Controlar el nivel de detalle de la salida del modelo",
+        "title": "nivel de detalle"
+      }
     },
     "privacy": {
       "enable_privacy_mode": "Enviar informes de errores y estadísticas de forma anónima",
@@ -3102,7 +3171,15 @@
             "help": "¿Admite el proveedor mensajes con el rol: \"developer\"?",
             "label": "Mensajes para desarrolladores compatibles"
           },
+          "enable_thinking": {
+            "help": "¿Admite este proveedor el control del pensamiento de modelos como Qwen3 mediante el parámetro enable_thinking?",
+            "label": "Soporta enable_thinking"
+          },
           "label": "Configuración de la API",
+          "service_tier": {
+            "help": "Si el proveedor admite la configuración del parámetro service_tier. Al activarlo, se podrá ajustar este parámetro en la configuración del nivel de servicio en la página de conversación. (Solo para modelos OpenAI)",
+            "label": "Compatible con service_tier"
+          },
           "stream_options": {
             "help": "¿Admite el proveedor el parámetro stream_options?",
             "label": "Admite stream_options"
@@ -3426,6 +3503,51 @@
         "time": "Mostrar tiempo del tema"
       }
     },
+    "translate": {
+      "custom": {
+        "delete": {
+          "description": "¿Está seguro de que desea eliminarlo?",
+          "title": "Eliminar idioma personalizado"
+        },
+        "error": {
+          "add": "Error al agregar",
+          "delete": "Error al eliminar",
+          "langCode": {
+            "builtin": "El idioma ya tiene soporte integrado",
+            "empty": "El código de idioma está vacío",
+            "exists": "El idioma ya existe",
+            "invalid": "Código de idioma no válido"
+          },
+          "update": "Actualización fallida",
+          "value": {
+            "empty": "El nombre del idioma no puede estar vacío",
+            "too_long": "El nombre del idioma es demasiado largo"
+          }
+        },
+        "langCode": {
+          "help": "[idioma+región] en formato [2-3 letras minúsculas]-[2-3 letras minúsculas]",
+          "label": "código de idioma",
+          "placeholder": "es-es"
+        },
+        "success": {
+          "add": "Agregado correctamente",
+          "delete": "Eliminado correctamente",
+          "update": "Actualización exitosa"
+        },
+        "table": {
+          "action": {
+            "title": "operación"
+          }
+        },
+        "value": {
+          "help": "1~32 caracteres",
+          "label": "nombre del idioma",
+          "placeholder": "español"
+        }
+      },
+      "prompt": "Seguir el mensaje del sistema",
+      "title": "Configuración de traducción"
+    },
     "tray": {
       "onclose": "Minimizar a la bandeja al cerrar",
       "show": "Mostrar bandera del sistema",
@@ -3482,14 +3604,24 @@
       "title": "Confirmación de traducción"
     },
     "copied": "El contenido traducido ha sido copiado",
+    "custom": {
+      "label": "Idioma personalizado"
+    },
     "detected": {
       "language": "Detección automática"
     },
     "empty": "El contenido de traducción está vacío",
     "error": {
+      "detected_unknown": "Idioma desconocido no intercambiable",
+      "empty": "El resultado de la traducción está vacío",
       "failed": "Fallo en la traducción",
+      "invalid_source": "Invalid source language",
       "not_configured": "El modelo de traducción no está configurado",
+      "not_supported": "Idioma no compatible {{language}}",
       "unknown": "Se produjo un error desconocido durante la traducción"
+    },
+    "exchange": {
+      "label": "Intercambiar el idioma de origen y el idioma de destino"
     },
     "history": {
       "clear": "Borrar historial",
@@ -3529,6 +3661,12 @@
       "scroll_sync": "Configuración de sincronización de desplazamiento",
       "title": "Configuración de traducción"
     },
+    "success": {
+      "custom": {
+        "delete": "Eliminado correctamente",
+        "update": "Actualización exitosa"
+      }
+    },
     "target_language": "Idioma de destino",
     "title": "Traducción",
     "tooltip": {
@@ -3546,6 +3684,9 @@
     "message": "Nueva versión {{version}} disponible, ¿desea instalarla ahora?",
     "noReleaseNotes": "Sin notas de la versión",
     "title": "Actualización"
+  },
+  "warning": {
+    "missing_provider": "El proveedor no existe, se ha revertido al proveedor predeterminado {{provider}}. Esto podría causar problemas."
   },
   "words": {
     "knowledgeGraph": "Grafo de Conocimiento",

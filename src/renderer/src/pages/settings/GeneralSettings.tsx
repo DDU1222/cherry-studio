@@ -1,4 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import InfoTooltip from '@renderer/components/InfoTooltip'
 import { HStack } from '@renderer/components/Layout'
 import Selector from '@renderer/components/Selector'
 import { useTheme } from '@renderer/context/ThemeProvider'
@@ -112,12 +113,6 @@ const GeneralSettings: FC = () => {
 
   const onProxyModeChange = (mode: 'system' | 'custom' | 'none') => {
     dispatch(setProxyMode(mode))
-    if (mode === 'system') {
-      dispatch(_setProxyUrl(undefined))
-    } else if (mode === 'none') {
-      dispatch(_setProxyUrl(undefined))
-      dispatch(_setProxyBypassRules(undefined))
-    }
   }
 
   const languagesOptions: { value: LanguageVarious; label: string; flag: string }[] = [
@@ -229,7 +224,7 @@ const GeneralSettings: FC = () => {
             </SettingRow>
           </>
         )}
-        {(storeProxyMode === 'custom' || storeProxyMode === 'system') && (
+        {storeProxyMode === 'custom' && (
           <>
             <SettingDivider />
             <SettingRow>
@@ -345,7 +340,10 @@ const GeneralSettings: FC = () => {
         <SettingTitle>{t('settings.developer.title')}</SettingTitle>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>{t('settings.developer.enable_developer_mode')}</SettingRowTitle>
+          <Flex align="center" gap={4}>
+            <SettingRowTitle>{t('settings.developer.enable_developer_mode')}</SettingRowTitle>
+            <InfoTooltip title={t('settings.developer.help')} />
+          </Flex>
           <Switch checked={enableDeveloperMode} onChange={setEnableDeveloperMode} />
         </SettingRow>
       </SettingGroup>

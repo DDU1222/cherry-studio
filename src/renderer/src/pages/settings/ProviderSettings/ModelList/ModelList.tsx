@@ -1,8 +1,8 @@
 import CollapsibleSearchBar from '@renderer/components/CollapsibleSearchBar'
-import CustomTag from '@renderer/components/CustomTag'
 import { LoadingIcon, StreamlineGoodHealthAndWellBeing } from '@renderer/components/Icons'
 import { HStack } from '@renderer/components/Layout'
-import { PROVIDER_CONFIG } from '@renderer/config/providers'
+import CustomTag from '@renderer/components/Tags/CustomTag'
+import { PROVIDER_URLS } from '@renderer/config/providers'
 import { useProvider } from '@renderer/hooks/useProvider'
 import { getProviderLabel } from '@renderer/i18n/label'
 import { SettingHelpLink, SettingHelpText, SettingHelpTextRow, SettingSubtitle } from '@renderer/pages/settings'
@@ -12,7 +12,7 @@ import ManageModelsPopup from '@renderer/pages/settings/ProviderSettings/ModelLi
 import NewApiAddModelPopup from '@renderer/pages/settings/ProviderSettings/ModelList/NewApiAddModelPopup'
 import { Model } from '@renderer/types'
 import { filterModelsByKeywords } from '@renderer/utils'
-import { Button, Empty, Flex, Spin, Tooltip } from 'antd'
+import { Button, Flex, Spin, Tooltip } from 'antd'
 import { groupBy, isEmpty, sortBy, toPairs } from 'lodash'
 import { ListCheck, Plus } from 'lucide-react'
 import React, { memo, startTransition, useCallback, useEffect, useMemo, useState } from 'react'
@@ -47,7 +47,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
   const { t } = useTranslation()
   const { provider, models, removeModel } = useProvider(providerId)
 
-  const providerConfig = PROVIDER_CONFIG[provider.id]
+  const providerConfig = PROVIDER_URLS[provider.id]
   const docsWebsite = providerConfig?.websites?.docs
   const modelsWebsite = providerConfig?.websites?.models
 
@@ -120,7 +120,7 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
         </HStack>
       </SettingSubtitle>
       <Spin spinning={isLoading} indicator={<LoadingIcon color="var(--color-text-2)" />}>
-        {displayedModelGroups && !isEmpty(displayedModelGroups) ? (
+        {displayedModelGroups && !isEmpty(displayedModelGroups) && (
           <Flex gap={12} vertical>
             {Object.keys(displayedModelGroups).map((group, i) => (
               <ModelListGroup
@@ -135,12 +135,6 @@ const ModelList: React.FC<ModelListProps> = ({ providerId }) => {
               />
             ))}
           </Flex>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t('settings.models.empty')}
-            style={{ visibility: isLoading ? 'hidden' : 'visible' }}
-          />
         )}
       </Spin>
       <Flex justify="space-between" align="center">

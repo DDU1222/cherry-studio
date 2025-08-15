@@ -183,10 +183,11 @@
       "prompt": "Prompt Settings",
       "reasoning_effort": {
         "default": "Default",
-        "high": "Think harder",
+        "high": "High",
         "label": "Reasoning effort",
-        "low": "Think less",
-        "medium": "Think normally",
+        "low": "Low",
+        "medium": "Medium",
+        "minimal": "Minimal",
         "off": "Off"
       },
       "regular_phrases": {
@@ -404,7 +405,10 @@
       "regenerate": {
         "model": "Switch Model"
       },
-      "useful": "Helpful"
+      "useful": {
+        "label": "Set as context",
+        "tip": "In this group of messages, this message will be selected to join the context"
+      }
     },
     "multiple": {
       "select": {
@@ -483,7 +487,32 @@
         },
         "title": "Save to Knowledge Base"
       },
-      "label": "Save"
+      "label": "Save",
+      "topic": {
+        "knowledge": {
+          "content": {
+            "maintext": {
+              "description": "Includes topic title and main text content from all messages"
+            }
+          },
+          "empty": {
+            "no_content": "This topic has no saveable content"
+          },
+          "error": {
+            "save_failed": "Failed to save topic, please check knowledge base configuration"
+          },
+          "loading": "Analyzing topic content...",
+          "select": {
+            "content": {
+              "label": "Select content types to save",
+              "selected_tip": "Selected {{count}} items from {{messages}} messages",
+              "tip": "Topic will be saved to knowledge base with complete conversation context"
+            }
+          },
+          "success": "Topic successfully saved to knowledge base ({{count}} items)",
+          "title": "Save Topic to Knowledge Base"
+        }
+      }
     },
     "settings": {
       "code": {
@@ -505,6 +534,7 @@
         "tip": "The run button will be displayed in the toolbar of executable code blocks, please do not execute dangerous code!",
         "title": "Code Execution"
       },
+      "code_image_tools": "Enable preview tools",
       "code_wrappable": "Code block wrappable",
       "context_count": {
         "label": "Context",
@@ -618,6 +648,31 @@
     },
     "translate": "Translate"
   },
+  "code": {
+    "auto_update_to_latest": "Automatically update to latest version",
+    "bun_required_message": "Bun environment is required to run CLI tools",
+    "cli_tool": "CLI Tool",
+    "cli_tool_placeholder": "Select the CLI tool to use",
+    "description": "Quickly launch multiple code CLI tools to improve development efficiency",
+    "folder_placeholder": "Select working directory",
+    "install_bun": "Install Bun",
+    "installing_bun": "Installing...",
+    "launch": {
+      "bun_required": "Please install Bun environment first before launching CLI tools",
+      "error": "Launch failed, please try again",
+      "label": "Launch",
+      "success": "Launch successful",
+      "validation_error": "Please complete all required fields: CLI tool, model, and working directory"
+    },
+    "launching": "Launching...",
+    "model": "Model",
+    "model_placeholder": "Select the model to use",
+    "model_required": "Please select a model",
+    "select_folder": "Select Folder",
+    "title": "Code Tools",
+    "update_options": "Update Options",
+    "working_directory": "Working Directory"
+  },
   "code_block": {
     "collapse": "Collapse",
     "copy": {
@@ -648,15 +703,6 @@
     },
     "expand": "Expand",
     "more": "More",
-    "preview": {
-      "copy": {
-        "image": "Copy as image"
-      },
-      "label": "Preview",
-      "source": "View Source Code",
-      "zoom_in": "Zoom In",
-      "zoom_out": "Zoom Out"
-    },
     "run": "Run",
     "split": {
       "label": "Split View",
@@ -756,6 +802,9 @@
       "file_format": "Backup file format error"
     },
     "chat": {
+      "chunk": {
+        "non_json": "Returned an invalid data format"
+      },
       "response": "Something went wrong. Please check if you have set your API key in the Settings > Providers"
     },
     "http": {
@@ -1158,6 +1207,9 @@
       },
       "failed": "Delete Failed",
       "success": "Delete Successful"
+    },
+    "dialog": {
+      "failed": "Preview failed"
     },
     "download": {
       "failed": "Download failed",
@@ -1654,6 +1706,22 @@
       "seed_tip": "Controls upscaling randomness"
     }
   },
+  "preview": {
+    "copy": {
+      "image": "Copy as image"
+    },
+    "dialog": "Open Dialog",
+    "label": "Preview",
+    "pan": "Pan",
+    "pan_down": "Pan Down",
+    "pan_left": "Pan Left",
+    "pan_right": "Pan Right",
+    "pan_up": "Pan Up",
+    "reset": "Reset",
+    "source": "View Source Code",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out"
+  },
   "prompts": {
     "explanation": "Explain this concept to me",
     "summarize": "Summarize this text",
@@ -1701,6 +1769,7 @@
     "openrouter": "OpenRouter",
     "perplexity": "Perplexity",
     "ph8": "PH8",
+    "poe": "Poe",
     "ppio": "PPIO",
     "qiniu": "Qiniu AI",
     "qwenlm": "QwenLM",
@@ -2211,7 +2280,13 @@
       },
       "nutstore": {
         "backup": {
-          "button": "Backup to Nutstore"
+          "button": "Backup to Nutstore",
+          "modal": {
+            "filename": {
+              "placeholder": "Enter backup filename"
+            },
+            "title": "Backup to Nutstore"
+          }
         },
         "checkConnection": {
           "fail": "Nutstore connection failed",
@@ -2245,7 +2320,11 @@
           "title": "Nutstore Storage Path"
         },
         "restore": {
-          "button": "Restore from Nutstore"
+          "button": "Restore from Nutstore",
+          "confirm": {
+            "content": "Restoring from Nutstore will overwrite current data. Do you want to continue?",
+            "title": "Restore from Nutstore"
+          }
         },
         "title": "Nutstore Configuration",
         "username": "Nutstore Username"
@@ -2510,6 +2589,7 @@
     },
     "developer": {
       "enable_developer_mode": "Enable Developer Mode",
+      "help": "After enabling developer mode, you can use the trace feature to view the data flow during model invocation.",
       "title": "Developer Mode"
     },
     "display": {
@@ -2634,6 +2714,17 @@
       "onboot": "Start Automatically on Boot",
       "title": "Launch",
       "totray": "Minimize to Tray on Launch"
+    },
+    "math": {
+      "engine": {
+        "label": "Math engine",
+        "none": "None"
+      },
+      "single_dollar": {
+        "label": "Enable $...$",
+        "tip": "Render math equations quoted by single dollar signs $...$. Default is enabled."
+      },
+      "title": "Math Settings"
     },
     "mcp": {
       "actions": "Actions",
@@ -2809,7 +2900,7 @@
       "tagsPlaceholder": "Enter tags",
       "timeout": "Timeout",
       "timeoutTooltip": "Timeout in seconds for requests to this server, default is 60 seconds",
-      "title": "MCP Settings",
+      "title": "MCP",
       "tools": {
         "autoApprove": {
           "label": "Auto Approve",
@@ -2865,10 +2956,6 @@
         "title": "Input Settings"
       },
       "markdown_rendering_input_message": "Markdown render input message",
-      "math_engine": {
-        "label": "Math engine",
-        "none": "None"
-      },
       "metrics": "{{time_first_token_millsec}}ms to first token | {{token_speed}} tok/sec",
       "model": {
         "title": "Model Settings"
@@ -2880,6 +2967,7 @@
         "none": "None"
       },
       "prompt": "Show prompt",
+      "show_message_outline": "Show message outline",
       "title": "Message Settings",
       "use_serif_font": "Use serif font"
     },
@@ -3054,6 +3142,9 @@
         "auto": "auto",
         "default": "default",
         "flex": "flex",
+        "on_demand": "on demand",
+        "performance": "performance",
+        "priority": "priority",
         "tip": "Specifies the latency tier to use for processing the request",
         "title": "Service Tier"
       },
@@ -3065,7 +3156,14 @@
         "tip": "A summary of the reasoning performed by the model",
         "title": "Summary Mode"
       },
-      "title": "OpenAI Settings"
+      "title": "OpenAI Settings",
+      "verbosity": {
+        "high": "High",
+        "low": "Low",
+        "medium": "Medium",
+        "tip": "Control the level of detail in the model's output",
+        "title": "Level of detail"
+      }
     },
     "privacy": {
       "enable_privacy_mode": "Anonymous reporting of errors and statistics",
@@ -3106,7 +3204,15 @@
             "help": "Does the provider support messages with role: \"developer\"?",
             "label": "Support Developer Message"
           },
+          "enable_thinking": {
+            "help": "Does the provider support controlling the reasoning of models like Qwen3 via the enable_thinking parameter?",
+            "label": "Support enable_thinking"
+          },
           "label": "API Settings",
+          "service_tier": {
+            "help": "Whether the provider supports configuring the service_tier parameter. When enabled, this parameter can be adjusted in the service tier settings on the chat page. (OpenAI models only)",
+            "label": "Supports service_tier"
+          },
           "stream_options": {
             "help": "Does the provider support the stream_options parameter?",
             "label": "Support stream_options"
@@ -3334,10 +3440,10 @@
     "title": "Settings",
     "tool": {
       "preprocess": {
-        "provider": "Pre Process Provider",
-        "provider_placeholder": "Choose a Pre Process provider",
-        "title": "Pre Process",
-        "tooltip": "In Settings -> Tools, set a document preprocessing service provider. Document preprocessing can effectively improve the retrieval performance of complex format documents and scanned documents."
+        "provider": "Document Processing Provider",
+        "provider_placeholder": "Choose a document processing provider",
+        "title": "Document Processing",
+        "tooltip": "In Settings -> Tools, set a document processing service provider. Document processing can effectively improve the retrieval performance of complex format documents and scanned documents."
       },
       "title": "Other Settings",
       "websearch": {
@@ -3430,6 +3536,51 @@
         "time": "Show topic time"
       }
     },
+    "translate": {
+      "custom": {
+        "delete": {
+          "description": "Are you sure you want to delete?",
+          "title": "Delete custom language"
+        },
+        "error": {
+          "add": "Failed to add",
+          "delete": "Deletion failed",
+          "langCode": {
+            "builtin": "The language has built-in support",
+            "empty": "Language code is empty",
+            "exists": "The language already exists",
+            "invalid": "Invalid language code"
+          },
+          "update": "Update failed",
+          "value": {
+            "empty": "Language name cannot be empty",
+            "too_long": "Language name is too long"
+          }
+        },
+        "langCode": {
+          "help": "[language+region] format, [2-3 lowercase letters]-[2-3 lowercase letters]",
+          "label": "Language code",
+          "placeholder": "en-us"
+        },
+        "success": {
+          "add": "Added successfully",
+          "delete": "Deleted successfully",
+          "update": "Update successful"
+        },
+        "table": {
+          "action": {
+            "title": "Operation"
+          }
+        },
+        "value": {
+          "help": "1~32 characters",
+          "label": "Language name",
+          "placeholder": "English"
+        }
+      },
+      "prompt": "Translation prompt",
+      "title": "Translation settings"
+    },
     "tray": {
       "onclose": "Minimize to Tray on Close",
       "show": "Show Tray Icon",
@@ -3443,6 +3594,7 @@
   "title": {
     "agents": "Agents",
     "apps": "Apps",
+    "code": "Code",
     "files": "Files",
     "home": "Home",
     "knowledge": "Knowledge Base",
@@ -3486,14 +3638,24 @@
       "title": "Translation Confirmation"
     },
     "copied": "Translation content copied",
+    "custom": {
+      "label": "Custom language"
+    },
     "detected": {
       "language": "Auto Detect"
     },
     "empty": "Translation content is empty",
     "error": {
+      "detected_unknown": "Unknown language cannot be exchanged",
+      "empty": "The translation result is empty content",
       "failed": "Translation failed",
+      "invalid_source": "Invalid source language",
       "not_configured": "Translation model is not configured",
+      "not_supported": "Unsupported language {{language}}",
       "unknown": "An unknown error occurred during translation"
+    },
+    "exchange": {
+      "label": "Swap the source and target languages"
     },
     "history": {
       "clear": "Clear History",
@@ -3533,6 +3695,12 @@
       "scroll_sync": "Scroll Sync Settings",
       "title": "Translation Settings"
     },
+    "success": {
+      "custom": {
+        "delete": "Deleted successfully",
+        "update": "Update successful"
+      }
+    },
     "target_language": "Target Language",
     "title": "Translation",
     "tooltip": {
@@ -3550,6 +3718,9 @@
     "message": "New version {{version}} is ready, do you want to install it now?",
     "noReleaseNotes": "No release notes",
     "title": "Update"
+  },
+  "warning": {
+    "missing_provider": "The supplier does not exist; reverted to the default supplier {{provider}}. This may cause issues."
   },
   "words": {
     "knowledgeGraph": "Knowledge Graph",

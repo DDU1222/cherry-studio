@@ -191,8 +191,11 @@ export class WindowService {
     // the zoom factor is reset to cached value when window is resized after routing to other page
     // see: https://github.com/electron/electron/issues/10572
     //
+    // and resize ipc
+    //
     mainWindow.on('will-resize', () => {
       mainWindow.webContents.setZoomFactor(configManager.getZoomFactor())
+      mainWindow.webContents.send(IpcChannel.Windows_Resize, mainWindow.getSize())
     })
 
     // set the zoom factor again when the window is going to restore
@@ -207,8 +210,17 @@ export class WindowService {
     if (isLinux) {
       mainWindow.on('resize', () => {
         mainWindow.webContents.setZoomFactor(configManager.getZoomFactor())
+        mainWindow.webContents.send(IpcChannel.Windows_Resize, mainWindow.getSize())
       })
     }
+
+    mainWindow.on('unmaximize', () => {
+      mainWindow.webContents.send(IpcChannel.Windows_Resize, mainWindow.getSize())
+    })
+
+    mainWindow.on('maximize', () => {
+      mainWindow.webContents.send(IpcChannel.Windows_Resize, mainWindow.getSize())
+    })
 
     // 添加Escape键退出全屏的支持
     mainWindow.webContents.on('before-input-event', (event, input) => {
@@ -252,7 +264,9 @@ export class WindowService {
         'https://cloud.siliconflow.cn/expensebill',
         'https://aihubmix.com/token',
         'https://aihubmix.com/topup',
-        'https://aihubmix.com/statistics'
+        'https://aihubmix.com/statistics',
+        'https://dash.302.ai/sso/login',
+        'https://dash.302.ai/charge'
       ]
 
       if (oauthProviderUrls.some((link) => url.startsWith(link))) {

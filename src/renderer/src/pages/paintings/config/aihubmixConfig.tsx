@@ -88,6 +88,11 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
               { label: 'ideogram_V_1', value: 'V_1' },
               { label: 'ideogram_V_1_TURBO', value: 'V_1_TURBO' }
             ]
+          },
+          {
+            label: 'Flux',
+            title: 'Flux',
+            options: [{ label: 'FLUX.1-Kontext-pro', value: 'FLUX.1-Kontext-pro' }]
           }
         ]
       },
@@ -105,7 +110,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         key: 'aspectRatio',
         title: 'paintings.aspect_ratio',
         options: ASPECT_RATIOS,
-        condition: (painting) => Boolean(painting.model?.startsWith('V_'))
+        condition: (painting) => Boolean(painting.model?.startsWith('V_')) || painting.model === 'FLUX.1-Kontext-pro'
       },
       {
         type: 'slider',
@@ -229,6 +234,16 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         options: PERSON_GENERATION_OPTIONS,
         initialValue: 'ALLOW_ALL',
         condition: (painting) => Boolean(painting.model?.startsWith('imagen-'))
+      },
+      {
+        type: 'slider',
+        key: 'safetyTolerance',
+        title: 'paintings.generate.safety_tolerance',
+        tooltip: 'paintings.generate.safety_tolerance_tip',
+        min: 0,
+        max: 6,
+        initialValue: 6,
+        condition: (painting) => painting.model === 'FLUX.1-Kontext-pro'
       }
     ],
     remix: [

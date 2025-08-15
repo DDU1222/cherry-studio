@@ -1586,6 +1586,8 @@
       "person_generation": "人物生成",
       "person_generation_tip": "允許模型生成人物圖像",
       "rendering_speed_tip": "控制渲染速度與品質之間的平衡，僅適用於 V_3 版本",
+      "safety_tolerance": "安全耐性",
+      "safety_tolerance_tip": "控制圖像生成的安全耐性，僅適用於 FLUX.1-Kontext-pro 版本",
       "seed_tip": "控制圖像生成的隨機性，以重現相同的生成結果",
       "style_type_tip": "圖像生成風格，僅適用於 V_2 及以上版本"
     },

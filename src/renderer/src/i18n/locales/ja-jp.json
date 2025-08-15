@@ -1586,6 +1586,8 @@
       "person_generation": "人物生成",
       "person_generation_tip": "人物画像を生成する",
       "rendering_speed_tip": "レンダリング速度と品質のバランスを調整します。V_3バージョンでのみ利用可能です",
+      "safety_tolerance": "安全耐性",
+      "safety_tolerance_tip": "画像生成の安全耐性を制御します。FLUX.1-Kontext-pro のみ利用可能です",
       "seed_tip": "画像生成のランダム性を制御して、同じ生成結果を再現します",
       "style_type_tip": "画像生成スタイル、V_2 以上のバージョンでのみ適用"
     },

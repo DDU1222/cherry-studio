@@ -1586,6 +1586,8 @@
       "person_generation": "Generate person",
       "person_generation_tip": "Allow model to generate person images",
       "rendering_speed_tip": "Controls rendering speed vs. quality trade-off, only available for V_3",
+      "safety_tolerance": "Safety Tolerance",
+      "safety_tolerance_tip": "Controls safety tolerance for image generation, only available for FLUX.1-Kontext-pro",
       "seed_tip": "Controls image generation randomness for reproducible results",
       "style_type_tip": "Image generation style for V_2 and above"
     },

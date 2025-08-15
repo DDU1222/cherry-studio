@@ -110,7 +110,7 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         key: 'aspectRatio',
         title: 'paintings.aspect_ratio',
         options: ASPECT_RATIOS,
-        condition: (painting) => Boolean(painting.model?.startsWith('V_')) || painting.model === 'FLUX.1-Kontext-pro'
+        condition: (painting) => Boolean(painting.model?.startsWith('V_'))
       },
       {
         type: 'slider',
@@ -235,6 +235,26 @@ export const createModeConfigs = (): Record<AihubmixMode, ConfigItem[]> => {
         initialValue: 'ALLOW_ALL',
         condition: (painting) => Boolean(painting.model?.startsWith('imagen-'))
       },
+      // {
+      //   type: 'slider',
+      //   key: 'width',
+      //   title: 'paintings.generate.width',
+      //   min: 256,
+      //   max: 1440,
+      //   initialValue: 1024,
+      //   step: 32,
+      //   condition: (painting) => painting.model === 'FLUX.1-Kontext-pro'
+      // },
+      // {
+      //   type: 'slider',
+      //   key: 'height',
+      //   title: 'paintings.generate.height',
+      //   min: 256,
+      //   max: 1440,
+      //   initialValue: 768,
+      //   step: 32,
+      //   condition: (painting) => painting.model === 'FLUX.1-Kontext-pro'
+      // },
       {
         type: 'slider',
         key: 'safetyTolerance',
@@ -399,5 +419,6 @@ export const DEFAULT_PAINTING: PaintingAction = {
   quality: 'auto',
   moderation: 'auto',
   n: 1,
-  numberOfImages: 4
+  numberOfImages: 4,
+  safetyTolerance: 6
 }

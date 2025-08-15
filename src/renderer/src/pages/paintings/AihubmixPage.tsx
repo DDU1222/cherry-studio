@@ -316,13 +316,13 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
             }
           } else if (painting.model === 'FLUX.1-Kontext-pro') {
             requestData = {
-              input: {
-                prompt,
-                aspect_ratio: painting.aspectRatio || '1:1',
-                safety_tolerance: painting.safetyTolerance || 6
-              }
+              prompt,
+              model: painting.model,
+              // width: painting.width,
+              // height: painting.height,
+              safety_tolerance: painting.safetyTolerance || 6
             }
-            url = aihubmixProvider.apiHost + `/v1/models/bfl/FLUX.1-Kontext-pro/predictions`
+            url = aihubmixProvider.apiHost + `/v1/images/generations`
             headers = {
               Authorization: `Bearer ${aihubmixProvider.apiKey}`
             }
@@ -882,7 +882,7 @@ const AihubmixPage: FC<{ Options: string[] }> = ({ Options }) => {
               placeholder={
                 isTranslating
                   ? t('paintings.translating')
-                  : painting.model?.startsWith('imagen-')
+                  : painting.model?.startsWith('imagen-') || painting.model?.startsWith('FLUX')
                     ? t('paintings.prompt_placeholder_en')
                     : t('paintings.prompt_placeholder_edit')
               }

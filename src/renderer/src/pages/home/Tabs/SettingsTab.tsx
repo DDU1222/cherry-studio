@@ -2,6 +2,7 @@ import EditableNumber from '@renderer/components/EditableNumber'
 import { HStack } from '@renderer/components/Layout'
 import Scrollbar from '@renderer/components/Scrollbar'
 import Selector from '@renderer/components/Selector'
+import { HelpTooltip } from '@renderer/components/TooltipIcons'
 import { DEFAULT_CONTEXTCOUNT, DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE } from '@renderer/config/constant'
 import { isOpenAIModel } from '@renderer/config/models'
 import { UNKNOWN } from '@renderer/config/translate'
@@ -22,11 +23,13 @@ import {
   setCodeCollapsible,
   setCodeEditor,
   setCodeExecution,
+  setCodeFancyBlock,
   setCodeImageTools,
   setCodeShowLineNumbers,
   setCodeViewer,
   setCodeWrappable,
-  setEnableBackspaceDeleteModel,
+  setConfirmDeleteMessage,
+  setConfirmRegenerateMessage,
   setEnableQuickPanelTriggers,
   setFontSize,
   setMathEnableSingleDollar,
@@ -47,8 +50,8 @@ import {
 import { Assistant, AssistantSettings, CodeStyleVarious, MathEngine, ThemeMode } from '@renderer/types'
 import { modalConfirm } from '@renderer/utils'
 import { getSendMessageShortcutLabel } from '@renderer/utils/input'
-import { Button, Col, InputNumber, Row, Slider, Switch, Tooltip } from 'antd'
-import { CircleHelp, Settings2 } from 'lucide-react'
+import { Button, Col, InputNumber, Row, Slider, Switch } from 'antd'
+import { Settings2 } from 'lucide-react'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -73,7 +76,7 @@ const SettingsTab: FC<Props> = (props) => {
   const [enableMaxTokens, setEnableMaxTokens] = useState(assistant?.settings?.enableMaxTokens ?? false)
   const [maxTokens, setMaxTokens] = useState(assistant?.settings?.maxTokens ?? 0)
   const [fontSizeValue, setFontSizeValue] = useState(fontSize)
-  const [streamOutput, setStreamOutput] = useState(assistant?.settings?.streamOutput ?? true)
+  const [streamOutput, setStreamOutput] = useState(assistant?.settings?.streamOutput)
   const { translateLanguages } = useTranslate()
 
   const { t } = useTranslation()
@@ -97,6 +100,7 @@ const SettingsTab: FC<Props> = (props) => {
     codeViewer,
     codeImageTools,
     codeExecution,
+    codeFancyBlock,
     mathEngine,
     mathEnableSingleDollar,
     autoTranslateWithSpace,
@@ -105,9 +109,10 @@ const SettingsTab: FC<Props> = (props) => {
     thoughtAutoCollapse,
     messageNavigation,
     enableQuickPanelTriggers,
-    enableBackspaceDeleteModel,
     showTranslateConfirm,
-    showMessageOutline
+    showMessageOutline,
+    confirmDeleteMessage,
+    confirmRegenerateMessage
   } = useSettings()
 
   const onUpdateAssistantSettings = (settings: Partial<AssistantSettings>) => {
@@ -176,128 +181,130 @@ const SettingsTab: FC<Props> = (props) => {
 
   return (
     <Container className="settings-tab">
-      <CollapsibleSettingGroup
-        title={t('assistants.settings.title')}
-        defaultExpanded={true}
-        extra={
-          <HStack alignItems="center" gap={2}>
-            <Button
-              type="text"
-              size="small"
-              icon={<Settings2 size={16} />}
-              onClick={() => AssistantSettingsPopup.show({ assistant, tab: 'model' })}
-            />
-          </HStack>
-        }>
-        <SettingGroup style={{ marginTop: 5 }}>
-          <Row align="middle">
-            <SettingRowTitleSmall>{t('chat.settings.temperature.label')}</SettingRowTitleSmall>
-            <Tooltip title={t('chat.settings.temperature.tip')}>
-              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-            </Tooltip>
-            <Switch
-              size="small"
-              style={{ marginLeft: 'auto' }}
-              checked={enableTemperature}
-              onChange={(enabled) => {
-                setEnableTemperature(enabled)
-                onUpdateAssistantSettings({ enableTemperature: enabled })
-              }}
-            />
-          </Row>
-          {enableTemperature ? (
+      {props.assistant.id !== 'fake' && (
+        <CollapsibleSettingGroup
+          title={t('assistants.settings.title')}
+          defaultExpanded={true}
+          extra={
+            <HStack alignItems="center" gap={2}>
+              <Button
+                type="text"
+                size="small"
+                icon={<Settings2 size={16} />}
+                onClick={() => AssistantSettingsPopup.show({ assistant, tab: 'model' })}
+              />
+            </HStack>
+          }>
+          <SettingGroup style={{ marginTop: 5 }}>
+            <Row align="middle">
+              <SettingRowTitleSmall>
+                {t('chat.settings.temperature.label')}
+                <HelpTooltip title={t('chat.settings.temperature.tip')} />
+              </SettingRowTitleSmall>
+              <Switch
+                size="small"
+                style={{ marginLeft: 'auto' }}
+                checked={enableTemperature}
+                onChange={(enabled) => {
+                  setEnableTemperature(enabled)
+                  onUpdateAssistantSettings({ enableTemperature: enabled })
+                }}
+              />
+            </Row>
+            {enableTemperature ? (
+              <Row align="middle" gutter={10}>
+                <Col span={23}>
+                  <Slider
+                    min={0}
+                    max={2}
+                    onChange={setTemperature}
+                    onChangeComplete={onTemperatureChange}
+                    value={typeof temperature === 'number' ? temperature : 0}
+                    step={0.1}
+                  />
+                </Col>
+              </Row>
+            ) : (
+              <SettingDivider />
+            )}
+            <Row align="middle">
+              <SettingRowTitleSmall>
+                {t('chat.settings.context_count.label')}
+                <HelpTooltip title={t('chat.settings.context_count.tip')} />
+              </SettingRowTitleSmall>
+            </Row>
             <Row align="middle" gutter={10}>
               <Col span={23}>
                 <Slider
                   min={0}
-                  max={2}
-                  onChange={setTemperature}
-                  onChangeComplete={onTemperatureChange}
-                  value={typeof temperature === 'number' ? temperature : 0}
-                  step={0.1}
+                  max={maxContextCount}
+                  onChange={setContextCount}
+                  onChangeComplete={onContextCountChange}
+                  value={typeof contextCount === 'number' ? contextCount : 0}
+                  step={1}
                 />
               </Col>
             </Row>
-          ) : (
             <SettingDivider />
-          )}
-          <Row align="middle">
-            <SettingRowTitleSmall>{t('chat.settings.context_count.label')}</SettingRowTitleSmall>
-            <Tooltip title={t('chat.settings.context_count.tip')}>
-              <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-            </Tooltip>
-          </Row>
-          <Row align="middle" gutter={10}>
-            <Col span={23}>
-              <Slider
-                min={0}
-                max={maxContextCount}
-                onChange={setContextCount}
-                onChangeComplete={onContextCountChange}
-                value={typeof contextCount === 'number' ? contextCount : 0}
-                step={1}
+            <SettingRow>
+              <SettingRowTitleSmall>{t('models.stream_output')}</SettingRowTitleSmall>
+              <Switch
+                size="small"
+                checked={streamOutput}
+                onChange={(checked) => {
+                  setStreamOutput(checked)
+                  onUpdateAssistantSettings({ streamOutput: checked })
+                }}
               />
-            </Col>
-          </Row>
-          <SettingDivider />
-          <SettingRow>
-            <SettingRowTitleSmall>{t('models.stream_output')}</SettingRowTitleSmall>
-            <Switch
-              size="small"
-              checked={streamOutput}
-              onChange={(checked) => {
-                setStreamOutput(checked)
-                onUpdateAssistantSettings({ streamOutput: checked })
-              }}
-            />
-          </SettingRow>
-          <SettingDivider />
-          <SettingRow>
-            <Row align="middle">
-              <SettingRowTitleSmall>{t('chat.settings.max_tokens.label')}</SettingRowTitleSmall>
-              <Tooltip title={t('chat.settings.max_tokens.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
-            </Row>
-            <Switch
-              size="small"
-              checked={enableMaxTokens}
-              onChange={async (enabled) => {
-                if (enabled) {
-                  const confirmed = await modalConfirm({
-                    title: t('chat.settings.max_tokens.confirm'),
-                    content: t('chat.settings.max_tokens.confirm_content'),
-                    okButtonProps: {
-                      danger: true
-                    }
-                  })
-                  if (!confirmed) return
-                }
-                setEnableMaxTokens(enabled)
-                onUpdateAssistantSettings({ enableMaxTokens: enabled })
-              }}
-            />
-          </SettingRow>
-          {enableMaxTokens && (
-            <Row align="middle" gutter={10} style={{ marginTop: 10 }}>
-              <Col span={24}>
-                <InputNumber
-                  disabled={!enableMaxTokens}
-                  min={0}
-                  max={10000000}
-                  step={100}
-                  value={typeof maxTokens === 'number' ? maxTokens : 0}
-                  changeOnBlur
-                  onChange={(value) => value && setMaxTokens(value)}
-                  onBlur={() => onMaxTokensChange(maxTokens)}
-                  style={{ width: '100%' }}
-                />
-              </Col>
-            </Row>
-          )}
-          <SettingDivider />
-        </SettingGroup>
-      </CollapsibleSettingGroup>
+            </SettingRow>
+            <SettingDivider />
+            <SettingRow>
+              <Row align="middle">
+                <SettingRowTitleSmall>
+                  {t('chat.settings.max_tokens.label')}
+                  <HelpTooltip title={t('chat.settings.max_tokens.tip')} />
+                </SettingRowTitleSmall>
+              </Row>
+              <Switch
+                size="small"
+                checked={enableMaxTokens}
+                onChange={async (enabled) => {
+                  if (enabled) {
+                    const confirmed = await modalConfirm({
+                      title: t('chat.settings.max_tokens.confirm'),
+                      content: t('chat.settings.max_tokens.confirm_content'),
+                      okButtonProps: {
+                        danger: true
+                      }
+                    })
+                    if (!confirmed) return
+                  }
+                  setEnableMaxTokens(enabled)
+                  onUpdateAssistantSettings({ enableMaxTokens: enabled })
+                }}
+              />
+            </SettingRow>
+            {enableMaxTokens && (
+              <Row align="middle" gutter={10} style={{ marginTop: 10 }}>
+                <Col span={24}>
+                  <InputNumber
+                    disabled={!enableMaxTokens}
+                    min={0}
+                    max={10000000}
+                    step={100}
+                    value={typeof maxTokens === 'number' ? maxTokens : 0}
+                    changeOnBlur
+                    onChange={(value) => value && setMaxTokens(value)}
+                    onBlur={() => onMaxTokensChange(maxTokens)}
+                    style={{ width: '100%' }}
+                  />
+                </Col>
+              </Row>
+            )}
+            <SettingDivider />
+          </SettingGroup>
+        </CollapsibleSettingGroup>
+      )}
       {isOpenAI && (
         <OpenAISettingsGroup
           model={model}
@@ -325,9 +332,7 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingRow>
             <SettingRowTitleSmall>
               {t('chat.settings.thought_auto_collapse.label')}
-              <Tooltip title={t('chat.settings.thought_auto_collapse.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              <HelpTooltip title={t('chat.settings.thought_auto_collapse.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -407,7 +412,7 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
         </SettingGroup>
       </CollapsibleSettingGroup>
-      <CollapsibleSettingGroup title={t('settings.math.title')} defaultExpanded={true}>
+      <CollapsibleSettingGroup title={t('settings.math.title')} defaultExpanded={false}>
         <SettingGroup>
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.math.engine.label')}</SettingRowTitleSmall>
@@ -424,10 +429,8 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>
-              {t('settings.math.single_dollar.label')}{' '}
-              <Tooltip title={t('settings.math.single_dollar.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              {t('settings.math.single_dollar.label')}
+              <HelpTooltip title={t('settings.math.single_dollar.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -438,7 +441,7 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
         </SettingGroup>
       </CollapsibleSettingGroup>
-      <CollapsibleSettingGroup title={t('chat.settings.code.title')} defaultExpanded={true}>
+      <CollapsibleSettingGroup title={t('chat.settings.code.title')} defaultExpanded={false}>
         <SettingGroup>
           <SettingRow>
             <SettingRowTitleSmall>{t('message.message.code_style')}</SettingRowTitleSmall>
@@ -454,10 +457,20 @@ const SettingsTab: FC<Props> = (props) => {
           <SettingDivider />
           <SettingRow>
             <SettingRowTitleSmall>
+              {t('chat.settings.code_fancy_block.label')}
+              <HelpTooltip title={t('chat.settings.code_fancy_block.tip')} />
+            </SettingRowTitleSmall>
+            <Switch
+              size="small"
+              checked={codeFancyBlock}
+              onChange={(checked) => dispatch(setCodeFancyBlock(checked))}
+            />
+          </SettingRow>
+          <SettingDivider />
+          <SettingRow>
+            <SettingRowTitleSmall>
               {t('chat.settings.code_execution.title')}
-              <Tooltip title={t('chat.settings.code_execution.tip')}>
-                <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-              </Tooltip>
+              <HelpTooltip title={t('chat.settings.code_execution.tip')} />
             </SettingRowTitleSmall>
             <Switch
               size="small"
@@ -471,9 +484,7 @@ const SettingsTab: FC<Props> = (props) => {
               <SettingRow style={{ paddingLeft: 8 }}>
                 <SettingRowTitleSmall>
                   {t('chat.settings.code_execution.timeout_minutes.label')}
-                  <Tooltip title={t('chat.settings.code_execution.timeout_minutes.tip')}>
-                    <CircleHelp size={14} style={{ marginLeft: 4 }} color="var(--color-text-2)" />
-                  </Tooltip>
+                  <HelpTooltip title={t('chat.settings.code_execution.timeout_minutes.tip')} />
                 </SettingRowTitleSmall>
                 <EditableNumber
                   size="small"
@@ -561,7 +572,10 @@ const SettingsTab: FC<Props> = (props) => {
           </SettingRow>
           <SettingDivider />
           <SettingRow>
-            <SettingRowTitleSmall>{t('chat.settings.code_image_tools')}</SettingRowTitleSmall>
+            <SettingRowTitleSmall>
+              {t('chat.settings.code_image_tools.label')}
+              <HelpTooltip title={t('chat.settings.code_image_tools.tip')} />
+            </SettingRowTitleSmall>
             <Switch
               size="small"
               checked={codeImageTools}
@@ -571,7 +585,7 @@ const SettingsTab: FC<Props> = (props) => {
         </SettingGroup>
         <SettingDivider />
       </CollapsibleSettingGroup>
-      <CollapsibleSettingGroup title={t('settings.messages.input.title')} defaultExpanded={true}>
+      <CollapsibleSettingGroup title={t('settings.messages.input.title')} defaultExpanded={false}>
         <SettingGroup>
           <SettingRow>
             <SettingRowTitleSmall>{t('settings.messages.input.show_estimated_tokens')}</SettingRowTitleSmall>
@@ -649,11 +663,20 @@ const SettingsTab: FC<Props> = (props) => {
           </SettingRow>
           <SettingDivider />
           <SettingRow>
-            <SettingRowTitleSmall>{t('settings.messages.input.enable_delete_model')}</SettingRowTitleSmall>
+            <SettingRowTitleSmall>{t('settings.messages.input.confirm_delete_message')}</SettingRowTitleSmall>
             <Switch
               size="small"
-              checked={enableBackspaceDeleteModel}
-              onChange={(checked) => dispatch(setEnableBackspaceDeleteModel(checked))}
+              checked={confirmDeleteMessage}
+              onChange={(checked) => dispatch(setConfirmDeleteMessage(checked))}
+            />
+          </SettingRow>
+          <SettingDivider />
+          <SettingRow>
+            <SettingRowTitleSmall>{t('settings.messages.input.confirm_regenerate_message')}</SettingRowTitleSmall>
+            <Switch
+              size="small"
+              checked={confirmRegenerateMessage}
+              onChange={(checked) => dispatch(setConfirmRegenerateMessage(checked))}
             />
           </SettingRow>
           <SettingDivider />
@@ -702,6 +725,7 @@ const Container = styled(Scrollbar)`
 
 const SettingRowTitleSmall = styled(SettingRowTitle)`
   font-size: 13px;
+  gap: 4px;
 `
 
 const SettingGroup = styled.div<{ theme?: ThemeMode }>`

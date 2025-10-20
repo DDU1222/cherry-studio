@@ -4,8 +4,11 @@ import BochaLogo from '@renderer/assets/images/search/bocha.webp'
 import ExaLogo from '@renderer/assets/images/search/exa.png'
 import SearxngLogo from '@renderer/assets/images/search/searxng.svg'
 import TavilyLogo from '@renderer/assets/images/search/tavily.png'
+import ZhipuLogo from '@renderer/assets/images/search/zhipu.png'
+import { HStack } from '@renderer/components/Layout'
 import ApiKeyListPopup from '@renderer/components/Popups/ApiKeyListPopup/popup'
 import { WEB_SEARCH_PROVIDER_CONFIG } from '@renderer/config/webSearchProviders'
+import { useTimer } from '@renderer/hooks/useTimer'
 import { useWebSearchProvider } from '@renderer/hooks/useWebSearchProviders'
 import WebSearchService from '@renderer/services/WebSearchService'
 import { WebSearchProviderId } from '@renderer/types'
@@ -33,6 +36,7 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
   const [basicAuthUsername, setBasicAuthUsername] = useState(provider.basicAuthUsername || '')
   const [basicAuthPassword, setBasicAuthPassword] = useState(provider.basicAuthPassword || '')
   const [apiValid, setApiValid] = useState(false)
+  const { setTimeoutTimer } = useTimer()
 
   const webSearchProviderConfig = WEB_SEARCH_PROVIDER_CONFIG[provider.id]
   const apiKeyWebsite = webSearchProviderConfig?.websites?.apiKey
@@ -85,11 +89,10 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
 
   async function checkSearch() {
     if (!provider) {
-      window.message.error({
-        content: t('settings.no_provider_selected'),
-        duration: 3,
-        icon: <Info size={18} />,
-        key: 'no-provider-selected'
+      window.toast.error({
+        title: t('settings.no_provider_selected'),
+        timeout: 3000,
+        icon: <Info size={18} />
       })
       return
     }
@@ -104,11 +107,9 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
       const { valid, error } = await WebSearchService.checkSearch(provider)
 
       const errorMessage = error && error?.message ? ' ' + error?.message : ''
-      window.message[valid ? 'success' : 'error']({
-        key: 'api-check',
-        style: { marginTop: '3vh' },
-        duration: valid ? 2 : 8,
-        content: valid
+      window.toast[valid ? 'success' : 'error']({
+        timeout: valid ? 2000 : 8000,
+        title: valid
           ? t('settings.tool.websearch.check_success')
           : t('settings.tool.websearch.check_failed') + errorMessage
       })
@@ -117,15 +118,13 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
     } catch (err) {
       logger.error('Check search error:', err as Error)
       setApiValid(false)
-      window.message.error({
-        key: 'check-search-error',
-        style: { marginTop: '3vh' },
-        duration: 8,
-        content: t('settings.tool.websearch.check_failed')
+      window.toast.error({
+        timeout: 8000,
+        title: t('settings.tool.websearch.check_failed')
       })
     } finally {
       setApiChecking(false)
-      setTimeout(() => setApiValid(false), 2500)
+      setTimeoutTimer('checkSearch', () => setApiValid(false), 2500)
     }
   }
 
@@ -138,6 +137,8 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
 
   const getWebSearchProviderLogo = (providerId: WebSearchProviderId) => {
     switch (providerId) {
+      case 'zhipu':
+        return ZhipuLogo
       case 'tavily':
         return TavilyLogo
       case 'searxng':
@@ -205,9 +206,13 @@ const WebSearchProviderSetting: FC<Props> = ({ providerId }) => {
             </Button>
           </Space.Compact>
           <SettingHelpTextRow style={{ justifyContent: 'space-between', marginTop: 5 }}>
-            <SettingHelpLink target="_blank" href={apiKeyWebsite}>
-              {t('settings.provider.api_key.tip')}
-            </SettingHelpLink>
+            <HStack>
+              {apiKeyWebsite && (
+                <SettingHelpLink target="_blank" href={apiKeyWebsite}>
+                  {t('settings.provider.get_api_key')}
+                </SettingHelpLink>
+              )}
+            </HStack>
             <SettingHelpText>{t('settings.provider.api_key.tip')}</SettingHelpText>
           </SettingHelpTextRow>
         </>

@@ -44,7 +44,8 @@ const PopupContainer: React.FC<PopupContainerProps> = ({ base: _base, resolve })
     [base, newBase]
   )
 
-  const handleMigration = useCallback(async () => {
+  // 处理嵌入模型更改迁移
+  const handleEmbeddingModelChangeMigration = useCallback(async () => {
     const migratedBase = { ...newBase, id: nanoid() }
     try {
       await migrateBase(migratedBase)
@@ -52,7 +53,7 @@ const PopupContainer: React.FC<PopupContainerProps> = ({ base: _base, resolve })
       resolve(migratedBase)
     } catch (error) {
       logger.error('KnowledgeBase migration failed:', error as Error)
-      window.message.error(t('knowledge.migrate.error.failed') + ': ' + formatErrorMessage(error))
+      window.toast.error(t('knowledge.migrate.error.failed') + ': ' + formatErrorMessage(error))
     }
   }, [newBase, migrateBase, resolve, t])
 
@@ -83,7 +84,7 @@ const PopupContainer: React.FC<PopupContainerProps> = ({ base: _base, resolve })
         ),
         okText: t('knowledge.migrate.confirm.ok'),
         centered: true,
-        onOk: handleMigration
+        onOk: handleEmbeddingModelChangeMigration
       })
     } else {
       try {
@@ -93,7 +94,7 @@ const PopupContainer: React.FC<PopupContainerProps> = ({ base: _base, resolve })
         resolve(newBase)
       } catch (error) {
         logger.error('KnowledgeBase edit failed:', error as Error)
-        window.message.error(t('knowledge.error.failed_to_edit') + formatErrorMessage(error))
+        window.toast.error(t('knowledge.error.failed_to_edit') + formatErrorMessage(error))
       }
     }
   }

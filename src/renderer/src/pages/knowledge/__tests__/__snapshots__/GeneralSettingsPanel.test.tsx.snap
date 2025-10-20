@@ -40,6 +40,43 @@ exports[`GeneralSettingsPanel > basic rendering > should match snapshot 1`] = `
     <div
       class="settings-label"
     >
+      settings.tool.preprocess.title
+      <span
+        data-placement="right"
+        data-testid="info-tooltip"
+        title="settings.tool.preprocess.tooltip"
+      >
+        ℹ️
+      </span>
+    </div>
+    <select
+      data-allow-clear="true"
+      data-placeholder="settings.tool.preprocess.provider_placeholder"
+      data-testid="preprocess-select"
+    >
+      <option
+        value=""
+      >
+        Select option
+      </option>
+      <option
+        value="doc2x"
+      >
+        Doc2X
+      </option>
+      <option
+        value="mistral"
+      >
+        Mistral
+      </option>
+    </select>
+  </div>
+  <div
+    class="c1"
+  >
+    <div
+      class="settings-label"
+    >
       models.embedding_model
       <span
         data-placement="right"
@@ -139,43 +176,6 @@ exports[`GeneralSettingsPanel > basic rendering > should match snapshot 1`] = `
     <div
       class="settings-label"
     >
-      settings.tool.preprocess.title
-      <span
-        data-placement="right"
-        data-testid="info-tooltip"
-        title="settings.tool.preprocess.tooltip"
-      >
-        ℹ️
-      </span>
-    </div>
-    <select
-      data-allow-clear="true"
-      data-placeholder="settings.tool.preprocess.provider_placeholder"
-      data-testid="preprocess-select"
-    >
-      <option
-        value=""
-      >
-        Select option
-      </option>
-      <option
-        value="doc2x"
-      >
-        Doc2X
-      </option>
-      <option
-        value="mistral"
-      >
-        Mistral
-      </option>
-    </select>
-  </div>
-  <div
-    class="c1"
-  >
-    <div
-      class="settings-label"
-    >
       knowledge.document_count
       <span
         data-placement="right"
@@ -191,6 +191,7 @@ exports[`GeneralSettingsPanel > basic rendering > should match snapshot 1`] = `
       max="50"
       min="1"
       step="1"
+      style="width: 100%;"
       type="range"
       value="6"
     />

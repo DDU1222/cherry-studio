@@ -31,8 +31,8 @@ const mocks = vi.hoisted(() => ({
 }))
 
 // Mock InfoTooltip component
-vi.mock('@renderer/components/InfoTooltip', () => ({
-  default: ({ title, placement }: { title: string; placement: string }) => (
+vi.mock('@renderer/components/TooltipIcons', () => ({
+  InfoTooltip: ({ title, placement }: { title: string; placement: string }) => (
     <span data-testid="info-tooltip" title={title} data-placement={placement}>
       ℹ️
     </span>
@@ -137,18 +137,25 @@ vi.mock('antd', () => ({
       {children}
     </select>
   ),
-  Slider: ({ value, onChange, min, max, step, marks }: any) => (
-    <input
-      data-testid="document-count-slider"
-      type="range"
-      value={value}
-      onChange={(e) => onChange?.(Number(e.target.value))}
-      min={min}
-      max={max}
-      step={step}
-      data-marks={JSON.stringify(marks)}
-    />
-  )
+  Slider: ({ value, onChange, min, max, step, marks, style }: any) => {
+    // Determine test ID based on slider characteristics
+    const isWeightSlider = min === 0 && max === 1 && step === 0.1
+    const testId = isWeightSlider ? 'weight-slider' : 'document-count-slider'
+
+    return (
+      <input
+        data-testid={testId}
+        type="range"
+        value={value}
+        onChange={(e) => onChange?.(Number(e.target.value))}
+        min={min}
+        max={max}
+        step={step}
+        style={style}
+        data-marks={JSON.stringify(marks)}
+      />
+    )
+  }
 }))
 
 /**

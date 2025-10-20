@@ -89,19 +89,13 @@ export default class LocalSearchProvider extends BaseWebSearchProvider {
    * @returns 带有语言过滤的查询
    */
   protected applyLanguageFilter(query: string, language: string): string {
-    if (this.provider.id.includes('local-google')) {
+    if (this.provider.id.includes('local-google') || this.provider.id.includes('local-bing')) {
       return `${query} lang:${language.split('-')[0]}`
-    }
-    if (this.provider.id.includes('local-bing')) {
-      return `${query} language:${language}`
-    }
-    if (this.provider.id.includes('local-baidu')) {
-      return `${query} language:${language.split('-')[0]}`
     }
     return query
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // oxlint-disable-next-line @typescript-eslint/no-unused-vars
   protected parseValidUrls(_htmlContent: string): SearchItem[] {
     throw new Error('Not implemented')
   }

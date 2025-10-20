@@ -25,7 +25,7 @@ const KnowledgeBaseFormModal: React.FC<KnowledgeBaseFormModalProps> = ({ panels,
       maskClosable={false}
       centered
       transitionName="animation-move-down"
-      width="min(800px, 70vw)"
+      width="min(900px, 65vw)"
       styles={{
         body: { padding: 0, height: 550 },
         header: {

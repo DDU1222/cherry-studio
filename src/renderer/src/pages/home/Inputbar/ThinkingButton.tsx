@@ -1,3 +1,4 @@
+import { ActionIconButton } from '@renderer/components/Buttons'
 import {
   MdiLightbulbAutoOutline,
   MdiLightbulbOffOutline,
@@ -6,13 +7,19 @@ import {
   MdiLightbulbOn50,
   MdiLightbulbOn80
 } from '@renderer/components/Icons/SVGIcon'
-import { useQuickPanel } from '@renderer/components/QuickPanel'
-import { getThinkModelType, isDoubaoThinkingAutoModel, MODEL_SUPPORTED_OPTIONS } from '@renderer/config/models'
+import { QuickPanelReservedSymbol, useQuickPanel } from '@renderer/components/QuickPanel'
+import {
+  getThinkModelType,
+  isDoubaoThinkingAutoModel,
+  isGPT5SeriesReasoningModel,
+  isOpenAIWebSearchModel,
+  MODEL_SUPPORTED_OPTIONS
+} from '@renderer/config/models'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { getReasoningEffortOptionsLabel } from '@renderer/i18n/label'
-import { Assistant, Model, ThinkingOption } from '@renderer/types'
+import { Model, ThinkingOption } from '@renderer/types'
 import { Tooltip } from 'antd'
-import { FC, ReactElement, useCallback, useEffect, useImperativeHandle, useMemo } from 'react'
+import { FC, ReactElement, useCallback, useImperativeHandle, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export interface ThinkingButtonRef {
@@ -22,24 +29,13 @@ export interface ThinkingButtonRef {
 interface Props {
   ref?: React.RefObject<ThinkingButtonRef | null>
   model: Model
-  assistant: Assistant
-  ToolbarButton: any
+  assistantId: string
 }
 
-// 选项转换映射表：当选项不支持时使用的替代选项
-const OPTION_FALLBACK: Record<ThinkingOption, ThinkingOption> = {
-  off: 'low', // off -> low (for Gemini Pro models)
-  minimal: 'low', // minimal -> low (for gpt-5 and after)
-  low: 'high',
-  medium: 'high', // medium -> high (for Grok models)
-  high: 'high',
-  auto: 'high' // auto -> high (for non-Gemini models)
-}
-
-const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): ReactElement => {
+const ThinkingButton: FC<Props> = ({ ref, model, assistantId }): ReactElement => {
   const { t } = useTranslation()
   const quickPanel = useQuickPanel()
-  const { updateAssistantSettings } = useAssistant(assistant.id)
+  const { assistant, updateAssistantSettings } = useAssistant(assistantId)
 
   const currentReasoningEffort = useMemo(() => {
     return assistant.settings?.reasoning_effort || 'off'
@@ -59,40 +55,6 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
     return MODEL_SUPPORTED_OPTIONS[modelType]
   }, [model, modelType])
 
-  // 检查当前设置是否与当前模型兼容
-  useEffect(() => {
-    if (currentReasoningEffort && !supportedOptions.includes(currentReasoningEffort)) {
-      // 使用表中定义的替代选项
-      const fallbackOption = OPTION_FALLBACK[currentReasoningEffort as ThinkingOption]
-
-      updateAssistantSettings({
-        reasoning_effort: fallbackOption === 'off' ? undefined : fallbackOption,
-        qwenThinkMode: fallbackOption === 'off'
-      })
-    }
-  }, [currentReasoningEffort, supportedOptions, updateAssistantSettings, model.id])
-
-  const createThinkingIcon = useCallback((option?: ThinkingOption, isActive: boolean = false) => {
-    const iconColor = isActive ? 'var(--color-primary)' : 'var(--color-icon)'
-
-    switch (true) {
-      case option === 'minimal':
-        return <MdiLightbulbOn30 width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      case option === 'low':
-        return <MdiLightbulbOn50 width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      case option === 'medium':
-        return <MdiLightbulbOn80 width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      case option === 'high':
-        return <MdiLightbulbOn width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      case option === 'auto':
-        return <MdiLightbulbAutoOutline width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      case option === 'off':
-        return <MdiLightbulbOffOutline width={18} height={18} style={{ color: iconColor, marginTop: -2 }} />
-      default:
-        return <MdiLightbulbOffOutline width={18} height={18} style={{ color: iconColor }} />
-    }
-  }, [])
-
   const onThinkingChange = useCallback(
     (option?: ThinkingOption) => {
       const isEnabled = option !== undefined && option !== 'off'
@@ -100,17 +62,28 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
       if (!isEnabled) {
         updateAssistantSettings({
           reasoning_effort: undefined,
+          reasoning_effort_cache: undefined,
           qwenThinkMode: false
         })
         return
       }
+      if (
+        isOpenAIWebSearchModel(model) &&
+        isGPT5SeriesReasoningModel(model) &&
+        assistant.enableWebSearch &&
+        option === 'minimal'
+      ) {
+        window.toast.warning(t('chat.web_search.warning.openai'))
+        return
+      }
       updateAssistantSettings({
         reasoning_effort: option,
+        reasoning_effort_cache: option,
         qwenThinkMode: true
       })
       return
     },
-    [updateAssistantSettings]
+    [updateAssistantSettings, assistant.enableWebSearch, model, t]
   )
 
   const panelItems = useMemo(() => {
@@ -119,11 +92,11 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
       level: option,
       label: getReasoningEffortOptionsLabel(option),
       description: '',
-      icon: createThinkingIcon(option),
+      icon: ThinkingIcon(option),
       isSelected: currentReasoningEffort === option,
       action: () => onThinkingChange(option)
     }))
-  }, [createThinkingIcon, currentReasoningEffort, supportedOptions, onThinkingChange])
+  }, [currentReasoningEffort, supportedOptions, onThinkingChange])
 
   const isThinkingEnabled = currentReasoningEffort !== undefined && currentReasoningEffort !== 'off'
 
@@ -135,12 +108,12 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
     quickPanel.open({
       title: t('assistants.settings.reasoning_effort.label'),
       list: panelItems,
-      symbol: 'thinking'
+      symbol: QuickPanelReservedSymbol.Thinking
     })
   }, [quickPanel, panelItems, t])
 
   const handleOpenQuickPanel = useCallback(() => {
-    if (quickPanel.isVisible && quickPanel.symbol === 'thinking') {
+    if (quickPanel.isVisible && quickPanel.symbol === QuickPanelReservedSymbol.Thinking) {
       quickPanel.close()
       return
     }
@@ -151,16 +124,6 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
     }
     openQuickPanel()
   }, [openQuickPanel, quickPanel, isThinkingEnabled, supportedOptions, disableThinking])
-
-  // 获取当前应显示的图标
-  const getThinkingIcon = useCallback(() => {
-    // 如果当前选项不支持，显示回退选项的图标
-    if (currentReasoningEffort && !supportedOptions.includes(currentReasoningEffort)) {
-      const fallbackOption = OPTION_FALLBACK[currentReasoningEffort as ThinkingOption]
-      return createThinkingIcon(fallbackOption, true)
-    }
-    return createThinkingIcon(currentReasoningEffort, currentReasoningEffort !== 'off')
-  }, [createThinkingIcon, currentReasoningEffort, supportedOptions])
 
   useImperativeHandle(ref, () => ({
     openQuickPanel
@@ -176,11 +139,41 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
       }
       mouseLeaveDelay={0}
       arrow>
-      <ToolbarButton type="text" onClick={handleOpenQuickPanel}>
-        {getThinkingIcon()}
-      </ToolbarButton>
+      <ActionIconButton onClick={handleOpenQuickPanel} active={currentReasoningEffort !== 'off'}>
+        {ThinkingIcon(currentReasoningEffort)}
+      </ActionIconButton>
     </Tooltip>
   )
+}
+
+const ThinkingIcon = (option?: ThinkingOption) => {
+  let IconComponent: React.FC<React.SVGProps<SVGSVGElement>> | null = null
+
+  switch (option) {
+    case 'minimal':
+      IconComponent = MdiLightbulbOn30
+      break
+    case 'low':
+      IconComponent = MdiLightbulbOn50
+      break
+    case 'medium':
+      IconComponent = MdiLightbulbOn80
+      break
+    case 'high':
+      IconComponent = MdiLightbulbOn
+      break
+    case 'auto':
+      IconComponent = MdiLightbulbAutoOutline
+      break
+    case 'off':
+      IconComponent = MdiLightbulbOffOutline
+      break
+    default:
+      IconComponent = MdiLightbulbOffOutline
+      break
+  }
+
+  return <IconComponent className="icon" width={18} height={18} style={{ marginTop: -2 }} />
 }
 
 export default ThinkingButton

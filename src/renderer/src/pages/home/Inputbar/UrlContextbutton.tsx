@@ -1,5 +1,7 @@
+import { ActionIconButton } from '@renderer/components/Buttons'
 import { useAssistant } from '@renderer/hooks/useAssistant'
-import { Assistant } from '@renderer/types'
+import { useTimer } from '@renderer/hooks/useTimer'
+import { isToolUseModeFunction } from '@renderer/utils/assistant'
 import { Tooltip } from 'antd'
 import { Link } from 'lucide-react'
 import { FC, memo, useCallback } from 'react'
@@ -11,32 +13,43 @@ export interface UrlContextButtonRef {
 
 interface Props {
   ref?: React.RefObject<UrlContextButtonRef | null>
-  assistant: Assistant
-  ToolbarButton: any
+  assistantId: string
 }
 
-const UrlContextButton: FC<Props> = ({ assistant, ToolbarButton }) => {
+const UrlContextButton: FC<Props> = ({ assistantId }) => {
   const { t } = useTranslation()
-  const { updateAssistant } = useAssistant(assistant.id)
+  const { assistant, updateAssistant } = useAssistant(assistantId)
+  const { setTimeoutTimer } = useTimer()
 
   const urlContentNewState = !assistant.enableUrlContext
 
   const handleToggle = useCallback(() => {
-    setTimeout(() => {
-      updateAssistant({ ...assistant, enableUrlContext: urlContentNewState })
-    }, 100)
-  }, [assistant, urlContentNewState, updateAssistant])
+    setTimeoutTimer(
+      'handleToggle',
+      () => {
+        const update = { ...assistant }
+        if (
+          assistant.mcpServers &&
+          assistant.mcpServers.length > 0 &&
+          urlContentNewState === true &&
+          isToolUseModeFunction(assistant)
+        ) {
+          update.enableUrlContext = false
+          window.toast.warning(t('chat.mcp.warning.url_context'))
+        } else {
+          update.enableUrlContext = urlContentNewState
+        }
+        updateAssistant(update)
+      },
+      100
+    )
+  }, [setTimeoutTimer, assistant, urlContentNewState, updateAssistant, t])
 
   return (
     <Tooltip placement="top" title={t('chat.input.url_context')} arrow>
-      <ToolbarButton type="text" onClick={handleToggle}>
-        <Link
-          size={18}
-          style={{
-            color: assistant.enableUrlContext ? 'var(--color-primary)' : 'var(--color-icon)'
-          }}
-        />
-      </ToolbarButton>
+      <ActionIconButton onClick={handleToggle} active={assistant.enableUrlContext}>
+        <Link size={18} />
+      </ActionIconButton>
     </Tooltip>
   )
 }

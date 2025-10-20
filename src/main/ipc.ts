@@ -4,15 +4,29 @@ import path from 'node:path'
 
 import { loggerService } from '@logger'
 import { isLinux, isMac, isPortable, isWin } from '@main/constant'
+import { generateSignature } from '@main/integration/cherryai'
+import anthropicService from '@main/services/AnthropicService'
 import { getBinaryPath, isBinaryExists, runInstallScript } from '@main/utils/process'
 import { handleZoomFactor } from '@main/utils/zoom'
 import { SpanEntity, TokenUsage } from '@mcp-trace/trace-core'
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, UpgradeChannel } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
-import { FileMetadata, Provider, Shortcut, ThemeMode } from '@types'
+import {
+  AgentPersistedMessage,
+  FileMetadata,
+  Notification,
+  OcrProvider,
+  Provider,
+  Shortcut,
+  SupportedOcrFile,
+  ThemeMode
+} from '@types'
+import checkDiskSpace from 'check-disk-space'
 import { BrowserWindow, dialog, ipcMain, ProxyConfig, session, shell, systemPreferences, webContents } from 'electron'
-import { Notification } from 'src/renderer/src/types/notification'
+import fontList from 'font-list'
 
+import { agentMessageRepository } from './services/agents/database'
+import { apiServerService } from './services/ApiServerService'
 import appService from './services/AppService'
 import AppUpdater from './services/AppUpdater'
 import BackupManager from './services/BackupManager'
@@ -30,6 +44,8 @@ import { openTraceWindow, setTraceWindowTitle } from './services/NodeTraceServic
 import NotificationService from './services/NotificationService'
 import * as NutstoreService from './services/NutstoreService'
 import ObsidianVaultService from './services/ObsidianVaultService'
+import { ocrService } from './services/ocr/OcrService'
+import OvmsManager from './services/OvmsManager'
 import { proxyManager } from './services/ProxyManager'
 import { pythonService } from './services/PythonService'
 import { FileServiceManager } from './services/remotefile/FileServiceManager'
@@ -56,7 +72,15 @@ import { setOpenLinkExternal } from './services/WebviewService'
 import { windowService } from './services/WindowService'
 import { calculateDirectorySize, getResourcePath } from './utils'
 import { decrypt, encrypt } from './utils/aes'
-import { getCacheDir, getConfigDir, getFilesDir, hasWritePermission, isPathInside, untildify } from './utils/file'
+import {
+  getCacheDir,
+  getConfigDir,
+  getFilesDir,
+  getNotesDir,
+  hasWritePermission,
+  isPathInside,
+  untildify
+} from './utils/file'
 import { updateAppDataConfig } from './utils/init'
 import { compress, decompress } from './utils/zip'
 
@@ -68,19 +92,27 @@ const obsidianVaultService = new ObsidianVaultService()
 const vertexAIService = VertexAIService.getInstance()
 const memoryService = MemoryService.getInstance()
 const dxtService = new DxtService()
+const ovmsManager = new OvmsManager()
 
 export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   const appUpdater = new AppUpdater()
-  const notificationService = new NotificationService(mainWindow)
+  const notificationService = new NotificationService()
 
   // Initialize Python service with main window
   pythonService.setMainWindow(mainWindow)
+
+  const checkMainWindow = () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      throw new Error('Main window does not exist or has been destroyed')
+    }
+  }
 
   ipcMain.handle(IpcChannel.App_Info, () => ({
     version: app.getVersion(),
     isPackaged: app.isPackaged,
     appPath: app.getAppPath(),
     filesPath: getFilesDir(),
+    notesPath: getNotesDir(),
     configPath: getConfigDir(),
     appDataPath: app.getPath('userData'),
     resourcesPath: getResourcePath(),
@@ -106,10 +138,11 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   })
 
   ipcMain.handle(IpcChannel.App_Reload, () => mainWindow.reload())
+  ipcMain.handle(IpcChannel.App_Quit, () => app.quit())
   ipcMain.handle(IpcChannel.Open_Website, (_, url: string) => shell.openExternal(url))
 
   // Update
-  ipcMain.handle(IpcChannel.App_ShowUpdateDialog, () => appUpdater.showUpdateDialog(mainWindow))
+  ipcMain.handle(IpcChannel.App_QuitAndInstall, () => appUpdater.quitAndInstall())
 
   // language
   ipcMain.handle(IpcChannel.App_SetLanguage, (_, language) => {
@@ -179,6 +212,27 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     }
   })
 
+  ipcMain.handle(IpcChannel.AgentMessage_PersistExchange, async (_event, payload) => {
+    try {
+      return await agentMessageRepository.persistExchange(payload)
+    } catch (error) {
+      logger.error('Failed to persist agent session messages', error as Error)
+      throw error
+    }
+  })
+
+  ipcMain.handle(
+    IpcChannel.AgentMessage_GetHistory,
+    async (_event, { sessionId }: { sessionId: string }): Promise<AgentPersistedMessage[]> => {
+      try {
+        return await agentMessageRepository.getSessionHistory(sessionId)
+      } catch (error) {
+        logger.error('Failed to get agent session history', error as Error)
+        throw error
+      }
+    }
+  )
+
   //only for mac
   if (isMac) {
     ipcMain.handle(IpcChannel.App_MacIsProcessTrusted, (): boolean => {
@@ -190,6 +244,25 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
       return systemPreferences.isTrustedAccessibilityClient(true)
     })
   }
+
+  ipcMain.handle(IpcChannel.App_SetFullScreen, (_, value: boolean): void => {
+    mainWindow.setFullScreen(value)
+  })
+
+  ipcMain.handle(IpcChannel.App_IsFullScreen, (): boolean => {
+    return mainWindow.isFullScreen()
+  })
+
+  // Get System Fonts
+  ipcMain.handle(IpcChannel.App_GetSystemFonts, async () => {
+    try {
+      const fonts = await fontList.getFonts()
+      return fonts.map((font: string) => font.replace(/^"(.*)"$/, '$1')).filter((font: string) => font.length > 0)
+    } catch (error) {
+      logger.error('Failed to get system fonts:', error as Error)
+      return []
+    }
+  })
 
   ipcMain.handle(IpcChannel.Config_Set, (_, key: string, value: any, isNotify: boolean = false) => {
     configManager.set(key, value, isNotify)
@@ -392,6 +465,7 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   // system
   ipcMain.handle(IpcChannel.System_GetDeviceType, () => (isMac ? 'mac' : isWin ? 'windows' : 'linux'))
   ipcMain.handle(IpcChannel.System_GetHostname, () => require('os').hostname())
+  ipcMain.handle(IpcChannel.System_GetCpuName, () => require('os').cpus()[0].model)
   ipcMain.handle(IpcChannel.System_ToggleDevTools, (e) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     win && win.webContents.toggleDevTools()
@@ -424,22 +498,38 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.File_Upload, fileManager.uploadFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Clear, fileManager.clear.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Read, fileManager.readFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_ReadExternal, fileManager.readExternalFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Delete, fileManager.deleteFile.bind(fileManager))
-  ipcMain.handle('file:deleteDir', fileManager.deleteDir.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_DeleteDir, fileManager.deleteDir.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_DeleteExternalFile, fileManager.deleteExternalFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_DeleteExternalDir, fileManager.deleteExternalDir.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_Move, fileManager.moveFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_MoveDir, fileManager.moveDir.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_Rename, fileManager.renameFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_RenameDir, fileManager.renameDir.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Get, fileManager.getFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_SelectFolder, fileManager.selectFolder.bind(fileManager))
   ipcMain.handle(IpcChannel.File_CreateTempFile, fileManager.createTempFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_Mkdir, fileManager.mkdir.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Write, fileManager.writeFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_WriteWithId, fileManager.writeFileWithId.bind(fileManager))
   ipcMain.handle(IpcChannel.File_SaveImage, fileManager.saveImage.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Base64Image, fileManager.base64Image.bind(fileManager))
   ipcMain.handle(IpcChannel.File_SaveBase64Image, fileManager.saveBase64Image.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_SavePastedImage, fileManager.savePastedImage.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Base64File, fileManager.base64File.bind(fileManager))
   ipcMain.handle(IpcChannel.File_GetPdfInfo, fileManager.pdfPageCount.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Download, fileManager.downloadFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_Copy, fileManager.copyFile.bind(fileManager))
   ipcMain.handle(IpcChannel.File_BinaryImage, fileManager.binaryImage.bind(fileManager))
   ipcMain.handle(IpcChannel.File_OpenWithRelativePath, fileManager.openFileWithRelativePath.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_IsTextFile, fileManager.isTextFile.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_GetDirectoryStructure, fileManager.getDirectoryStructure.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_CheckFileName, fileManager.fileNameGuard.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_ValidateNotesDirectory, fileManager.validateNotesDirectory.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_StartWatcher, fileManager.startFileWatcher.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_StopWatcher, fileManager.stopFileWatcher.bind(fileManager))
+  ipcMain.handle(IpcChannel.File_ShowInFolder, fileManager.showInFolder.bind(fileManager))
 
   // file service
   ipcMain.handle(IpcChannel.FileService_Upload, async (_, provider: Provider, file: FileMetadata) => {
@@ -464,6 +554,7 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
 
   // fs
   ipcMain.handle(IpcChannel.Fs_Read, FileService.readFile.bind(FileService))
+  ipcMain.handle(IpcChannel.Fs_ReadText, FileService.readTextFileWithAutoEncoding.bind(FileService))
 
   // export
   ipcMain.handle(IpcChannel.Export_Word, exportService.exportToWord.bind(exportService))
@@ -483,7 +574,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
     }
   })
 
-  // knowledge base
   ipcMain.handle(IpcChannel.KnowledgeBase_Create, KnowledgeService.create.bind(KnowledgeService))
   ipcMain.handle(IpcChannel.KnowledgeBase_Reset, KnowledgeService.reset.bind(KnowledgeService))
   ipcMain.handle(IpcChannel.KnowledgeBase_Delete, KnowledgeService.delete.bind(KnowledgeService))
@@ -527,20 +617,59 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
 
   // window
   ipcMain.handle(IpcChannel.Windows_SetMinimumSize, (_, width: number, height: number) => {
-    mainWindow?.setMinimumSize(width, height)
+    checkMainWindow()
+    mainWindow.setMinimumSize(width, height)
   })
 
   ipcMain.handle(IpcChannel.Windows_ResetMinimumSize, () => {
-    mainWindow?.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-    const [width, height] = mainWindow?.getSize() ?? [MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT]
+    checkMainWindow()
+
+    mainWindow.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
+    const [width, height] = mainWindow.getSize() ?? [MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT]
     if (width < MIN_WINDOW_WIDTH) {
-      mainWindow?.setSize(MIN_WINDOW_WIDTH, height)
+      mainWindow.setSize(MIN_WINDOW_WIDTH, height)
     }
   })
 
   ipcMain.handle(IpcChannel.Windows_GetSize, () => {
-    const [width, height] = mainWindow?.getSize() ?? [MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT]
+    checkMainWindow()
+    const [width, height] = mainWindow.getSize() ?? [MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT]
     return [width, height]
+  })
+
+  // Window Controls
+  ipcMain.handle(IpcChannel.Windows_Minimize, () => {
+    checkMainWindow()
+    mainWindow.minimize()
+  })
+
+  ipcMain.handle(IpcChannel.Windows_Maximize, () => {
+    checkMainWindow()
+    mainWindow.maximize()
+  })
+
+  ipcMain.handle(IpcChannel.Windows_Unmaximize, () => {
+    checkMainWindow()
+    mainWindow.unmaximize()
+  })
+
+  ipcMain.handle(IpcChannel.Windows_Close, () => {
+    checkMainWindow()
+    mainWindow.close()
+  })
+
+  ipcMain.handle(IpcChannel.Windows_IsMaximized, () => {
+    checkMainWindow()
+    return mainWindow.isMaximized()
+  })
+
+  // Send maximized state changes to renderer
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send(IpcChannel.Windows_MaximizedChanged, true)
+  })
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send(IpcChannel.Windows_MaximizedChanged, false)
   })
 
   // VertexAI
@@ -616,6 +745,7 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.App_GetBinaryPath, (_, name: string) => getBinaryPath(name))
   ipcMain.handle(IpcChannel.App_InstallUvBinary, () => runInstallScript('install-uv.js'))
   ipcMain.handle(IpcChannel.App_InstallBunBinary, () => runInstallScript('install-bun.js'))
+  ipcMain.handle(IpcChannel.App_InstallOvmsBinary, () => runInstallScript('install-ovms.js'))
 
   //copilot
   ipcMain.handle(IpcChannel.Copilot_GetAuthMessage, CopilotService.getAuthMessage.bind(CopilotService))
@@ -656,7 +786,6 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   ipcMain.handle(IpcChannel.Webview_SetOpenLinkExternal, (_, webviewId: number, isExternal: boolean) =>
     setOpenLinkExternal(webviewId, isExternal)
   )
-
   ipcMain.handle(IpcChannel.Webview_SetSpellCheckEnabled, (_, webviewId: number, isEnable: boolean) => {
     const webview = webContents.fromId(webviewId)
     if (!webview) return
@@ -702,6 +831,63 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
       addStreamMessage(spanId, modelName, context, msg)
   )
 
+  ipcMain.handle(IpcChannel.App_GetDiskInfo, async (_, directoryPath: string) => {
+    try {
+      const diskSpace = await checkDiskSpace(directoryPath) // { free, size } in bytes
+      logger.debug('disk space', diskSpace)
+      const { free, size } = diskSpace
+      return {
+        free,
+        size
+      }
+    } catch (error) {
+      logger.error('check disk space error', error as Error)
+      return null
+    }
+  })
+  // API Server
+  apiServerService.registerIpcHandlers()
+
+  // Anthropic OAuth
+  ipcMain.handle(IpcChannel.Anthropic_StartOAuthFlow, () => anthropicService.startOAuthFlow())
+  ipcMain.handle(IpcChannel.Anthropic_CompleteOAuthWithCode, (_, code: string) =>
+    anthropicService.completeOAuthWithCode(code)
+  )
+  ipcMain.handle(IpcChannel.Anthropic_CancelOAuthFlow, () => anthropicService.cancelOAuthFlow())
+  ipcMain.handle(IpcChannel.Anthropic_GetAccessToken, () => anthropicService.getValidAccessToken())
+  ipcMain.handle(IpcChannel.Anthropic_HasCredentials, () => anthropicService.hasCredentials())
+  ipcMain.handle(IpcChannel.Anthropic_ClearCredentials, () => anthropicService.clearCredentials())
+
   // CodeTools
   ipcMain.handle(IpcChannel.CodeTools_Run, codeToolsService.run)
+  ipcMain.handle(IpcChannel.CodeTools_GetAvailableTerminals, () => codeToolsService.getAvailableTerminalsForPlatform())
+  ipcMain.handle(IpcChannel.CodeTools_SetCustomTerminalPath, (_, terminalId: string, path: string) =>
+    codeToolsService.setCustomTerminalPath(terminalId, path)
+  )
+  ipcMain.handle(IpcChannel.CodeTools_GetCustomTerminalPath, (_, terminalId: string) =>
+    codeToolsService.getCustomTerminalPath(terminalId)
+  )
+  ipcMain.handle(IpcChannel.CodeTools_RemoveCustomTerminalPath, (_, terminalId: string) =>
+    codeToolsService.removeCustomTerminalPath(terminalId)
+  )
+
+  // OCR
+  ipcMain.handle(IpcChannel.OCR_ocr, (_, file: SupportedOcrFile, provider: OcrProvider) =>
+    ocrService.ocr(file, provider)
+  )
+  ipcMain.handle(IpcChannel.OCR_ListProviders, () => ocrService.listProviderIds())
+
+  // OVMS
+  ipcMain.handle(IpcChannel.Ovms_AddModel, (_, modelName: string, modelId: string, modelSource: string, task: string) =>
+    ovmsManager.addModel(modelName, modelId, modelSource, task)
+  )
+  ipcMain.handle(IpcChannel.Ovms_StopAddModel, () => ovmsManager.stopAddModel())
+  ipcMain.handle(IpcChannel.Ovms_GetModels, () => ovmsManager.getModels())
+  ipcMain.handle(IpcChannel.Ovms_IsRunning, () => ovmsManager.initializeOvms())
+  ipcMain.handle(IpcChannel.Ovms_GetStatus, () => ovmsManager.getOvmsStatus())
+  ipcMain.handle(IpcChannel.Ovms_RunOVMS, () => ovmsManager.runOvms())
+  ipcMain.handle(IpcChannel.Ovms_StopOVMS, () => ovmsManager.stopOvms())
+
+  // CherryAI
+  ipcMain.handle(IpcChannel.Cherryai_GetSignature, (_, params) => generateSignature(params))
 }

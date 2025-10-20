@@ -3,7 +3,7 @@ import { Button, Tooltip, TooltipProps } from 'antd'
 import { useCallback, useMemo } from 'react'
 
 import ModelAvatar from './Avatar/ModelAvatar'
-import SelectModelPopup from './Popups/SelectModelPopup'
+import { SelectModelPopup } from './Popups/SelectModelPopup'
 
 type Props = {
   model: Model
@@ -15,7 +15,7 @@ type Props = {
 
 const ModelSelectButton = ({ model, onSelectModel, modelFilter, noTooltip, tooltipProps }: Props) => {
   const onClick = useCallback(async () => {
-    const selectedModel = await SelectModelPopup.show({ model, modelFilter })
+    const selectedModel = await SelectModelPopup.show({ model, filter: modelFilter })
     if (selectedModel) {
       onSelectModel?.(selectedModel)
     }

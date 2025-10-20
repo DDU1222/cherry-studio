@@ -1,11 +1,16 @@
+import { ErrorBoundary } from '@renderer/components/ErrorBoundary'
+import { useAgentSessionInitializer } from '@renderer/hooks/agents/useAgentSessionInitializer'
 import { useAssistants } from '@renderer/hooks/useAssistant'
+import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
 import { useActiveTopic } from '@renderer/hooks/useTopic'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
 import NavigationService from '@renderer/services/NavigationService'
 import { newMessagesActions } from '@renderer/store/newMessage'
+import { setActiveAgentId, setActiveTopicOrSessionAction } from '@renderer/store/runtime'
 import { Assistant, Topic } from '@renderer/types'
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, SECOND_MIN_WINDOW_WIDTH } from '@shared/config/constant'
+import { AnimatePresence, motion } from 'motion/react'
 import { FC, startTransition, useCallback, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -22,6 +27,9 @@ const HomePage: FC = () => {
   const navigate = useNavigate()
   const { isLeftNavbar } = useNavbarPosition()
 
+  // Initialize agent session hook
+  useAgentSessionInitializer()
+
   const location = useLocation()
   const state = location.state
 
@@ -29,6 +37,8 @@ const HomePage: FC = () => {
   const { activeTopic, setActiveTopic: _setActiveTopic } = useActiveTopic(activeAssistant?.id, state?.topic)
   const { showAssistants, showTopics, topicPosition } = useSettings()
   const dispatch = useDispatch()
+  const { chat } = useRuntime()
+  const { activeTopicOrSession } = chat
 
   _activeAssistant = activeAssistant
 
@@ -50,6 +60,7 @@ const HomePage: FC = () => {
       startTransition(() => {
         _setActiveTopic((prev) => (newTopic?.id === prev.id ? prev : newTopic))
         dispatch(newMessagesActions.setTopicFulfilled({ topicId: newTopic.id, fulfilled: false }))
+        dispatch(setActiveTopicOrSessionAction('topic'))
       })
     },
     [_setActiveTopic, dispatch]
@@ -87,6 +98,29 @@ const HomePage: FC = () => {
     }
   }, [showAssistants, showTopics, topicPosition])
 
+  useEffect(() => {
+    if (activeTopicOrSession === 'session') {
+      setActiveAssistant({
+        id: 'fake',
+        name: '',
+        prompt: '',
+        topics: [
+          {
+            id: 'fake',
+            assistantId: 'fake',
+            name: 'fake',
+            createdAt: '',
+            updatedAt: '',
+            messages: []
+          } as unknown as Topic
+        ],
+        type: 'chat'
+      })
+    } else if (activeTopicOrSession === 'topic') {
+      dispatch(setActiveAgentId(null))
+    }
+  }, [activeTopicOrSession, dispatch, setActiveAssistant])
+
   return (
     <Container id="home-page">
       {isLeftNavbar && (
@@ -96,24 +130,38 @@ const HomePage: FC = () => {
           setActiveTopic={setActiveTopic}
           setActiveAssistant={setActiveAssistant}
           position="left"
+          activeTopicOrSession={activeTopicOrSession}
         />
       )}
       <ContentContainer id={isLeftNavbar ? 'content-container' : undefined}>
-        {showAssistants && (
-          <HomeTabs
-            activeAssistant={activeAssistant}
+        <AnimatePresence initial={false}>
+          {showAssistants && (
+            <ErrorBoundary>
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 'var(--assistants-width)', opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}>
+                <HomeTabs
+                  activeAssistant={activeAssistant}
+                  activeTopic={activeTopic}
+                  setActiveAssistant={setActiveAssistant}
+                  setActiveTopic={setActiveTopic}
+                  position="left"
+                />
+              </motion.div>
+            </ErrorBoundary>
+          )}
+        </AnimatePresence>
+        <ErrorBoundary>
+          <Chat
+            assistant={activeAssistant}
             activeTopic={activeTopic}
-            setActiveAssistant={setActiveAssistant}
             setActiveTopic={setActiveTopic}
-            position="left"
+            setActiveAssistant={setActiveAssistant}
           />
-        )}
-        <Chat
-          assistant={activeAssistant}
-          activeTopic={activeTopic}
-          setActiveTopic={setActiveTopic}
-          setActiveAssistant={setActiveAssistant}
-        />
+        </ErrorBoundary>
       </ContentContainer>
     </Container>
   )

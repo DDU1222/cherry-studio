@@ -1,9 +1,9 @@
 import type { PermissionUpdate } from '@anthropic-ai/claude-agent-sdk'
-import { Button, Chip, ScrollShadow } from '@heroui/react'
 import { loggerService } from '@logger'
 import { useAppDispatch, useAppSelector } from '@renderer/store'
-import { selectPendingPermissionByToolName, toolPermissionsActions } from '@renderer/store/toolPermissions'
+import { selectPendingPermission, toolPermissionsActions } from '@renderer/store/toolPermissions'
 import type { NormalToolResponse } from '@renderer/types'
+import { Button, Spin } from 'antd'
 import { ChevronDown, CirclePlay, CircleX } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -17,9 +17,7 @@ interface Props {
 export function ToolPermissionRequestCard({ toolResponse }: Props) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const request = useAppSelector((state) =>
-    selectPendingPermissionByToolName(state.toolPermissions, toolResponse.tool.name)
-  )
+  const request = useAppSelector((state) => selectPendingPermission(state.toolPermissions, toolResponse.toolCallId))
   const [now, setNow] = useState(() => Date.now())
   const [showDetails, setShowDetails] = useState(false)
 
@@ -54,6 +52,7 @@ export function ToolPermissionRequestCard({ toolResponse }: Props) {
   const isSubmittingAllow = request?.status === 'submitting-allow'
   const isSubmittingDeny = request?.status === 'submitting-deny'
   const isSubmitting = isSubmittingAllow || isSubmittingDeny
+  const isInvoking = request?.status === 'invoking'
 
   const handleDecision = useCallback(
     async (
@@ -115,6 +114,53 @@ export function ToolPermissionRequestCard({ toolResponse }: Props) {
     )
   }
 
+  if (isInvoking) {
+    return (
+      <div className="w-full max-w-xl rounded-xl border border-default-200 bg-default-100 px-4 py-3 shadow-sm">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Spin size="small" />
+              <div className="flex flex-col gap-1">
+                <div className="font-semibold text-default-700 text-sm">{request.toolName}</div>
+                <div className="text-default-500 text-xs">{t('agent.toolPermission.executing')}</div>
+              </div>
+            </div>
+            {request.inputPreview && (
+              <div className="flex items-center justify-end">
+                <Button
+                  aria-label={
+                    showDetails
+                      ? t('agent.toolPermission.aria.hideDetails')
+                      : t('agent.toolPermission.aria.showDetails')
+                  }
+                  className="h-8 text-default-600 transition-colors hover:bg-default-200/50 hover:text-default-800"
+                  onClick={() => setShowDetails((value) => !value)}
+                  icon={<ChevronDown className={`transition-transform ${showDetails ? 'rotate-180' : ''}`} size={16} />}
+                  variant="text"
+                  style={{ backgroundColor: 'transparent' }}
+                />
+              </div>
+            )}
+          </div>
+
+          {showDetails && request.inputPreview && (
+            <div className="flex flex-col gap-3 border-default-200 border-t pt-3">
+              <div className="rounded-md border border-default-200 bg-default-100 p-3">
+                <p className="mb-2 font-medium text-default-400 text-xs uppercase tracking-wide">
+                  {t('agent.toolPermission.inputPreview')}
+                </p>
+                <div className="max-h-[192px] overflow-auto font-mono text-xs">
+                  <pre className="whitespace-pre-wrap break-all p-2 text-left">{request.inputPreview}</pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full max-w-xl rounded-xl border border-default-200 bg-default-100 px-4 py-3 shadow-sm">
       <div className="flex flex-col gap-3">
@@ -127,33 +173,39 @@ export function ToolPermissionRequestCard({ toolResponse }: Props) {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <Chip color={isExpired ? 'danger' : 'warning'} size="sm" variant="flat">
+            <div
+              className={`rounded px-2 py-0.5 font-medium text-xs ${
+                isExpired ? 'text-[var(--color-error)]' : 'text-[var(--color-status-warning)]'
+              }`}>
               {isExpired
                 ? t('agent.toolPermission.expired')
                 : t('agent.toolPermission.pending', { seconds: remainingSeconds })}
-            </Chip>
+            </div>
 
             <div className="flex items-center gap-1">
               <Button
                 aria-label={t('agent.toolPermission.aria.denyRequest')}
                 className="h-8"
                 color="danger"
-                isDisabled={isSubmitting || isExpired}
-                isLoading={isSubmittingDeny}
-                onPress={() => handleDecision('deny')}
-                startContent={<CircleX size={16} />}
-                variant="bordered">
+                disabled={isSubmitting || isExpired}
+                loading={isSubmittingDeny}
+                onClick={() => handleDecision('deny')}
+                icon={<CircleX size={16} />}
+                iconPosition={'start'}
+                variant="outlined">
                 {t('agent.toolPermission.button.cancel')}
               </Button>
 
               <Button
                 aria-label={t('agent.toolPermission.aria.allowRequest')}
                 className="h-8 px-3"
-                color="success"
-                isDisabled={isSubmitting || isExpired}
-                isLoading={isSubmittingAllow}
-                onPress={() => handleDecision('allow')}
-                startContent={<CirclePlay size={16} />}>
+                color="primary"
+                disabled={isSubmitting || isExpired}
+                loading={isSubmittingAllow}
+                onClick={() => handleDecision('allow')}
+                icon={<CirclePlay size={16} />}
+                iconPosition={'start'}
+                variant="solid">
                 {t('agent.toolPermission.button.run')}
               </Button>
 
@@ -161,12 +213,12 @@ export function ToolPermissionRequestCard({ toolResponse }: Props) {
                 aria-label={
                   showDetails ? t('agent.toolPermission.aria.hideDetails') : t('agent.toolPermission.aria.showDetails')
                 }
-                className="h-8"
-                isIconOnly
-                onPress={() => setShowDetails((value) => !value)}
-                variant="light">
-                <ChevronDown className={`transition-transform ${showDetails ? 'rotate-180' : ''}`} size={16} />
-              </Button>
+                className="h-8 text-default-600 transition-colors hover:bg-default-200/50 hover:text-default-800"
+                onClick={() => setShowDetails((value) => !value)}
+                icon={<ChevronDown className={`transition-transform ${showDetails ? 'rotate-180' : ''}`} size={16} />}
+                variant="text"
+                style={{ backgroundColor: 'transparent' }}
+              />
             </div>
           </div>
         </div>
@@ -181,9 +233,9 @@ export function ToolPermissionRequestCard({ toolResponse }: Props) {
               <p className="mb-2 font-medium text-default-400 text-xs uppercase tracking-wide">
                 {t('agent.toolPermission.inputPreview')}
               </p>
-              <ScrollShadow className="max-h-48 font-mono text-xs" hideScrollBar>
-                <pre className="whitespace-pre-wrap break-all text-left">{request.inputPreview}</pre>
-              </ScrollShadow>
+              <div className="max-h-[192px] overflow-auto font-mono text-xs">
+                <pre className="whitespace-pre-wrap break-all p-2 text-left">{request.inputPreview}</pre>
+              </div>
             </div>
 
             {request.requiresPermissions && (

@@ -21,6 +21,8 @@ files:
   - "**/*"
   - "!**/{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}"
   - "!electron.vite.config.{js,ts,mjs,cjs}}"
+  - "!.*"
+  - "!components.json"
   - "!**/{.eslintignore,.eslintrc.js,.eslintrc.json,.eslintcache,root.eslint.config.js,eslint.config.js,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,eslint.config.mjs,dev-app-update.yml,CHANGELOG.md,README.md,biome.jsonc}"
   - "!**/{.env,.env.*,.npmrc,pnpm-lock.yaml}"
   - "!**/{tsconfig.json,tsconfig.tsbuildinfo,tsconfig.node.json,tsconfig.web.json}"
@@ -95,7 +97,6 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   notarize: false
   artifactName: ${productName}-${version}-${arch}.${ext}
-  minimumSystemVersion: "20.1.0" # 最低支持 macOS 11.0
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -133,116 +134,66 @@ artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
     <!--LANG:en-->
-    What's New in v1.7.0-beta.3
+    What's New in v1.7.0-rc.2
 
-    New Features:
-    - Enhanced Tool Permission System: Real-time tool approval interface with improved UX
-    - Plugin Management System: Support for Claude Agent plugins (agents, commands, skills)
-    - Skill Tool: Add skill execution capabilities for agents
-    - Mobile App Data Restore: Support restoring data to mobile applications
-    - OpenMinerU Preprocessor: Knowledge base now supports open-source MinerU for document processing
-    - HuggingFace Provider: Added HuggingFace as AI provider
-    - Claude Haiku 4.5: Support for the latest Claude Haiku 4.5 model
-    - Ling Series Models: Added support for Ling-1T and related models
-    - Intel OVMS Painting: New painting provider using Intel OpenVINO Model Server
-    - Automatic Update Checks: Implement periodic update checking with configurable intervals
-    - HuggingChat Mini App: New mini app for HuggingChat integration
+    ✨ New Features:
+    - AI Models: Added support for Gemini 3, Gemini 3 Pro with image preview, and GPT-5.1
+    - Import: ChatGPT conversation import feature
+    - Agent: Git Bash detection and requirement check for Windows agents
+    - Search: Native language emoji search with CLDR data format
+    - Provider: Endpoint type support for cherryin provider
+    - Debug: Local crash mini dump file for better diagnostics
 
-    Improvements:
-    - Agent Creation: New agents are now automatically activated upon creation
-    - Lazy Loading: Optimize page load performance with route lazy loading
-    - UI Enhancements: Improved agent item styling and layout consistency
-    - Navigation: Better navbar layout for fullscreen mode on macOS
-    - Settings Tab: Enhanced context slider consistency
-    - Backup Manager: Unified footer layout for local and S3 backup managers
-    - Menu System: Enhanced application menu with improved help section
-    - Proxy Rules: Comprehensive proxy bypass rule matching
-    - German Language: Added German language support
-    - MCP Confirmation: Added confirmation modal when activating protocol-installed MCP servers
-    - Translation: Enhanced translation script with concurrency and validation
-    - Electron & Vite: Updated to Electron 38 and Vite 4.0.1
+    🐛 Important Bug Fixes:
+    - Error Handling: Improved error display in AiSdkToChunkAdapter
+    - Database: Optimized DatabaseManager and fixed libsql crash issues
+    - Memory: Fixed EventEmitter memory leak in useApiServer hook
+    - Messages: Fixed adjacent user messages appearing when assistant message contains error only
+    - Tools: Fixed missing execution state for approved tool permissions
+    - File Processing: Fixed "no such file" error for non-English filenames in open-mineru
+    - PDF: Fixed mineru PDF validation and 403 errors
+    - Images: Fixed base64 image save issues
+    - Search: Fixed URL context and web search capability
+    - Models: Added verbosity parameter support for GPT-5 models
+    - UI: Improved todo tool status icon visibility and colors
+    - Providers: Fixed api-host for vercel ai-gateway and gitcode update config
 
-    Claude Code Tool Improvements:
-    - GlobTool: Now counts lines instead of files in output for better clarity
-    - ReadTool: Automatically removes system reminder tags from output
-    - TodoWriteTool: Improved rendering behavior
-    - Environment Variables: Updated model-related environment variable names
-
-    Bug Fixes:
-    - Fixed session model not being used when sending messages
-    - Fixed tool approval UI and shared workspace plugin inconsistencies
-    - Fixed API server readiness notification to renderer
-    - Fixed grouped items not respecting saved tag order
-    - Fixed assistant/agent activation when creating new ones
-    - Fixed Dashscope Anthropic API host and migrated old configs
-    - Fixed Qwen3 thinking mode control for Ollama
-    - Fixed disappeared MCP button
-    - Fixed create assistant causing blank screen
-    - Fixed up-down button visibility in some cases
-    - Fixed hooks preventing save on composing enter key
-    - Fixed Azure GPT-image-1 and OpenRouter Gemini-image
-    - Fixed Silicon reasoning issues
-    - Fixed topic branch incomplete copy with two-pass ID mapping
-    - Fixed deep research model search context restrictions
-    - Fixed model capability checking logic
-    - Fixed reranker API error response capture
-    - Fixed right-click paste file content into inputbar
-    - Fixed minimax-m2 support in aiCore
+    ⚡ Improvements:
+    - SDK: Updated Google and OpenAI SDKs with new features
+    - UI: Simplified knowledge base creation modal and agent creation form
+    - Tools: Replaced renderToolContent function with ToolContent component
+    - Architecture: Namespace tool call IDs with session ID to prevent conflicts
+    - Config: AI SDK configuration refactoring
 
     <!--LANG:zh-CN-->
-    v1.7.0-beta.3 新特性
+    v1.7.0-rc.2 新特性
 
-    新功能:
-    - 增强工具权限系统：实时工具审批界面，改进用户体验
-    - 插件管理系统：支持 Claude Agent 插件（agents、commands、skills）
-    - 技能工具：为 Agent 添加技能执行能力
-    - 移动应用数据恢复：支持将数据恢复到移动应用程序
-    - OpenMinerU 预处理器：知识库现支持使用开源 MinerU 处理文档
-    - HuggingFace 提供商：添加 HuggingFace 作为 AI 提供商
-    - Claude Haiku 4.5：支持最新的 Claude Haiku 4.5 模型
-    - Ling 系列模型：添加 Ling-1T 及相关模型支持
-    - Intel OVMS 绘图：使用 Intel OpenVINO 模型服务器的新绘图提供商
-    - 自动更新检查：实现可配置间隔的定期更新检查
-    - HuggingChat 小程序：新增 HuggingChat 集成小程序
+    ✨ 新功能:
+    - AI 模型：新增 Gemini 3、Gemini 3 Pro 图像预览支持，以及 GPT-5.1
+    - 导入：ChatGPT 对话导入功能
+    - Agent：Windows Agent 的 Git Bash 检测和要求检查
+    - 搜索：支持本地语言 emoji 搜索（CLDR 数据格式）
+    - 提供商：cherryin provider 的端点类型支持
+    - 调试：启用本地崩溃 mini dump 文件，方便诊断
 
-    改进:
-    - Agent 创建：新创建的 Agent 现在会自动激活
-    - 懒加载：通过路由懒加载优化页面加载性能
-    - UI 增强：改进 Agent 项目样式和布局一致性
-    - 导航：改进 macOS 全屏模式下的导航栏布局
-    - 设置选项卡：增强上下文滑块一致性
-    - 备份管理器：统一本地和 S3 备份管理器的页脚布局
-    - 菜单系统：增强应用菜单，改进帮助部分
-    - 代理规则：全面的代理绕过规则匹配
-    - 德语支持：添加德语语言支持
-    - MCP 确认：添加激活协议安装的 MCP 服务器时的确认模态框
-    - 翻译：增强翻译脚本的并发和验证功能
-    - Electron & Vite：更新至 Electron 38 和 Vite 4.0.1
+    🐛 重要修复:
+    - 错误处理：改进 AiSdkToChunkAdapter 的错误显示
+    - 数据库：优化 DatabaseManager 并修复 libsql 崩溃问题
+    - 内存：修复 useApiServer hook 中的 EventEmitter 内存泄漏
+    - 消息：修复当助手消息仅包含错误时相邻用户消息出现的问题
+    - 工具：修复批准工具权限缺少执行状态的问题
+    - 文件处理：修复 open-mineru 处理非英文文件名时的"无此文件"错误
+    - PDF：修复 mineru PDF 验证和 403 错误
+    - 图片：修复 base64 图片保存问题
+    - 搜索：修复 URL 上下文和网络搜索功能
+    - 模型：为 GPT-5 模型添加 verbosity 参数支持
+    - UI：改进 todo 工具状态图标可见性和颜色
+    - 提供商：修复 vercel ai-gateway 和 gitcode 更新配置的 api-host
 
-    Claude Code 工具改进:
-    - GlobTool：现在计算行数而不是文件数，提供更清晰的输出
-    - ReadTool：自动从输出中移除系统提醒标签
-    - TodoWriteTool：改进渲染行为
-    - 环境变量：更新模型相关的环境变量名称
-
-    问题修复:
-    - 修复发送消息时未使用会话模型
-    - 修复工具审批 UI 和共享工作区插件不一致
-    - 修复 API 服务器就绪通知到渲染器
-    - 修复分组项目不遵守已保存标签顺序
-    - 修复创建新的助手/Agent 时的激活问题
-    - 修复 Dashscope Anthropic API 主机并迁移旧配置
-    - 修复 Ollama 的 Qwen3 思考模式控制
-    - 修复 MCP 按钮消失
-    - 修复创建助手导致空白屏幕
-    - 修复某些情况下上下按钮可见性
-    - 修复钩子在输入法输入时阻止保存
-    - 修复 Azure GPT-image-1 和 OpenRouter Gemini-image
-    - 修复 Silicon 推理问题
-    - 修复主题分支不完整复制，采用两阶段 ID 映射
-    - 修复深度研究模型搜索上下文限制
-    - 修复模型能力检查逻辑
-    - 修复 reranker API 错误响应捕获
-    - 修复右键粘贴文件内容到输入栏
-    - 修复 aiCore 中的 minimax-m2 支持
+    ⚡ 改进:
+    - SDK：更新 Google 和 OpenAI SDK，新增功能和修复
+    - UI：简化知识库创建模态框和 agent 创建表单
+    - 工具：用 ToolContent 组件替换 renderToolContent 函数，提升可读性
+    - 架构：用会话 ID 命名工具调用 ID 以防止冲突
+    - 配置：AI SDK 配置重构
     <!--LANG:END-->

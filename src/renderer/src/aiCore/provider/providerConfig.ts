@@ -1,30 +1,31 @@
-import {
-  formatPrivateKey,
-  hasProviderConfig,
-  ProviderConfigFactory,
-  type ProviderId,
-  type ProviderSettingsMap
-} from '@cherrystudio/ai-core/provider'
+import { formatPrivateKey, hasProviderConfig, ProviderConfigFactory } from '@cherrystudio/ai-core/provider'
 import { isOpenAIChatCompletionOnlyModel } from '@renderer/config/models'
 import {
-  isAnthropicProvider,
-  isAzureOpenAIProvider,
-  isGeminiProvider,
-  isNewApiProvider
-} from '@renderer/config/providers'
-import {
   getAwsBedrockAccessKeyId,
+  getAwsBedrockApiKey,
+  getAwsBedrockAuthType,
   getAwsBedrockRegion,
   getAwsBedrockSecretAccessKey
 } from '@renderer/hooks/useAwsBedrock'
-import { createVertexProvider, isVertexAIConfigured, isVertexProvider } from '@renderer/hooks/useVertexAI'
+import { createVertexProvider, isVertexAIConfigured } from '@renderer/hooks/useVertexAI'
 import { getProviderByModel } from '@renderer/services/AssistantService'
 import store from '@renderer/store'
 import { isSystemProvider, type Model, type Provider, SystemProviderIds } from '@renderer/types'
 import { formatApiHost, formatAzureOpenAIApiHost, formatVertexApiHost, routeToEndpoint } from '@renderer/utils/api'
+import {
+  isAnthropicProvider,
+  isAzureOpenAIProvider,
+  isCherryAIProvider,
+  isGeminiProvider,
+  isNewApiProvider,
+  isPerplexityProvider,
+  isVertexProvider
+} from '@renderer/utils/provider'
 import { cloneDeep } from 'lodash'
 
+import type { AiSdkConfig } from '../types'
 import { aihubmixProviderCreator, newApiResolverCreator, vertexAnthropicProviderCreator } from './config'
+import { azureAnthropicProviderCreator } from './config/azure-anthropic'
 import { COPILOT_DEFAULT_HEADERS } from './constants'
 import { getAiSdkProviderId } from './factory'
 
@@ -70,6 +71,9 @@ function handleSpecialProviders(model: Model, provider: Provider): Provider {
       return vertexAnthropicProviderCreator(model, provider)
     }
   }
+  if (isAzureOpenAIProvider(provider)) {
+    return azureAnthropicProviderCreator(model, provider)
+  }
   return provider
 }
 
@@ -98,6 +102,10 @@ function formatProviderApiHost(provider: Provider): Provider {
     formatted.apiHost = formatAzureOpenAIApiHost(formatted.apiHost)
   } else if (isVertexProvider(formatted)) {
     formatted.apiHost = formatVertexApiHost(formatted)
+  } else if (isCherryAIProvider(formatted)) {
+    formatted.apiHost = formatApiHost(formatted.apiHost, false)
+  } else if (isPerplexityProvider(formatted)) {
+    formatted.apiHost = formatApiHost(formatted.apiHost, false)
   } else {
     formatted.apiHost = formatApiHost(formatted.apiHost)
   }
@@ -123,13 +131,7 @@ export function getActualProvider(model: Model): Provider {
  * 将 Provider 配置转换为新 AI SDK 格式
  * 简化版：利用新的别名映射系统
  */
-export function providerToAiSdkConfig(
-  actualProvider: Provider,
-  model: Model
-): {
-  providerId: ProviderId | 'openai-compatible'
-  options: ProviderSettingsMap[keyof ProviderSettingsMap]
-} {
+export function providerToAiSdkConfig(actualProvider: Provider, model: Model): AiSdkConfig {
   const aiSdkProviderId = getAiSdkProviderId(actualProvider)
 
   // 构建基础配置
@@ -163,7 +165,7 @@ export function providerToAiSdkConfig(
   extraOptions.endpoint = endpoint
   if (actualProvider.type === 'openai-response' && !isOpenAIChatCompletionOnlyModel(model)) {
     extraOptions.mode = 'responses'
-  } else if (aiSdkProviderId === 'openai') {
+  } else if (aiSdkProviderId === 'openai' || (aiSdkProviderId === 'cherryin' && actualProvider.type === 'openai')) {
     extraOptions.mode = 'chat'
   }
 
@@ -181,20 +183,25 @@ export function providerToAiSdkConfig(
     }
   }
   // azure
-  if (aiSdkProviderId === 'azure' || actualProvider.type === 'azure-openai') {
-    // extraOptions.apiVersion = actualProvider.apiVersion 默认使用v1，不使用azure endpoint
-    if (actualProvider.apiVersion === 'preview') {
-      extraOptions.mode = 'responses'
-    } else {
-      extraOptions.mode = 'chat'
-    }
+  // https://learn.microsoft.com/en-us/azure/ai-foundry/openai/latest
+  // https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses?tabs=python-key#responses-api
+  if (aiSdkProviderId === 'azure-responses') {
+    extraOptions.mode = 'responses'
+  } else if (aiSdkProviderId === 'azure') {
+    extraOptions.mode = 'chat'
   }
 
   // bedrock
   if (aiSdkProviderId === 'bedrock') {
+    const authType = getAwsBedrockAuthType()
     extraOptions.region = getAwsBedrockRegion()
-    extraOptions.accessKeyId = getAwsBedrockAccessKeyId()
-    extraOptions.secretAccessKey = getAwsBedrockSecretAccessKey()
+
+    if (authType === 'apiKey') {
+      extraOptions.apiKey = getAwsBedrockApiKey()
+    } else {
+      extraOptions.accessKeyId = getAwsBedrockAccessKeyId()
+      extraOptions.secretAccessKey = getAwsBedrockSecretAccessKey()
+    }
   }
   // google-vertex
   if (aiSdkProviderId === 'google-vertex' || aiSdkProviderId === 'google-vertex-anthropic') {
@@ -211,10 +218,17 @@ export function providerToAiSdkConfig(
     baseConfig.baseURL += aiSdkProviderId === 'google-vertex' ? '/publishers/google' : '/publishers/anthropic/models'
   }
 
+  // cherryin
+  if (aiSdkProviderId === 'cherryin') {
+    if (model.endpoint_type) {
+      extraOptions.endpointType = model.endpoint_type
+    }
+  }
+
   if (hasProviderConfig(aiSdkProviderId) && aiSdkProviderId !== 'openai-compatible') {
     const options = ProviderConfigFactory.fromProvider(aiSdkProviderId, baseConfig, extraOptions)
     return {
-      providerId: aiSdkProviderId as ProviderId,
+      providerId: aiSdkProviderId,
       options
     }
   }

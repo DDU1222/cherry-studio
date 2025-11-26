@@ -1,6 +1,7 @@
 {
   "agent": {
     "add": {
+      "description": "Lide com tarefas complexas usando várias ferramentas",
       "error": {
         "failed": "Falha ao adicionar agente",
         "invalid_agent": "Agent inválido"
@@ -25,6 +26,18 @@
         "failed": "Falha ao obter o agente.",
         "null_id": "O ID do agente é nulo."
       }
+    },
+    "gitBash": {
+      "error": {
+        "description": "O Git Bash é necessário para executar agentes no Windows. O agente não pode funcionar sem ele. Por favor, instale o Git para Windows a partir de",
+        "recheck": "Reverificar a Instalação do Git Bash",
+        "title": "Git Bash Necessário"
+      },
+      "notFound": "Git Bash não encontrado. Por favor, instale-o primeiro.",
+      "success": "Git Bash detectado com sucesso!"
+    },
+    "input": {
+      "placeholder": "Digite sua mensagem aqui, envie com {{key}} - @ selecionar caminho, / selecionar comando"
     },
     "list": {
       "error": {
@@ -253,6 +266,7 @@
       "error": {
         "sendFailed": "Falha ao enviar sua decisão. Por favor, tente novamente."
       },
+      "executing": "Executando...",
       "expired": "Expirado",
       "inputPreview": "Pré-visualização da entrada da ferramenta",
       "pending": "Pendente ({{seconds}}s)",
@@ -337,6 +351,41 @@
       "stopped": "Parado"
     },
     "title": "Servidor API"
+  },
+  "appMenu": {
+    "about": "Sobre",
+    "close": "Fechar Janela",
+    "copy": "Copiar",
+    "cut": "Corte",
+    "delete": "Excluir",
+    "documentation": "Documentação",
+    "edit": "Editar",
+    "feedback": "Feedback",
+    "file": "Arquivo",
+    "forceReload": "Forçar Recarregamento",
+    "front": "Trazer Tudo para a Frente",
+    "help": "Ajuda",
+    "hide": "Esconder",
+    "hideOthers": "Ocultar Outros",
+    "minimize": "Minimizar",
+    "paste": "Colar",
+    "quit": "Sair",
+    "redo": "Refazer",
+    "releases": "Lançamentos",
+    "reload": "Recarregar",
+    "resetZoom": "Tamanho Real",
+    "selectAll": "Selecionar Todos",
+    "services": "Serviços",
+    "toggleDevTools": "Alternar Ferramentas de Desenvolvedor",
+    "toggleFullscreen": "Alternar Tela Cheia",
+    "undo": "Desfazer",
+    "unhide": "Mostrar Todos",
+    "view": "Visualizar",
+    "website": "Site",
+    "window": "Janela",
+    "zoom": "Zoom",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir Zoom"
   },
   "assistants": {
     "abbr": "Assistente",
@@ -547,7 +596,11 @@
   "chat": {
     "add": {
       "assistant": {
+        "description": "Conversas diárias e perguntas e respostas rápidas",
         "title": "Adicionar assistente"
+      },
+      "option": {
+        "title": "Selecionar Tipo"
       },
       "topic": {
         "title": "Novo Tópico"
@@ -591,6 +644,15 @@
       "view_full_content": "Ver conteúdo completo"
     },
     "input": {
+      "activity_directory": {
+        "description": "Selecionar arquivo do diretório de atividades",
+        "loading": "Carregando Arquivos...",
+        "no_file_found": {
+          "description": "Nenhum arquivo disponível em diretórios acessíveis",
+          "label": "Nenhum Arquivo Encontrado"
+        },
+        "title": "Diretório de Atividades"
+      },
       "auto_resize": "Ajuste automático de altura",
       "clear": {
         "content": "Tem certeza de que deseja limpar todas as mensagens da sessão atual?",
@@ -614,6 +676,7 @@
       "new": {
         "context": "Limpar contexto {{Command}}"
       },
+      "new_session": "Nova Sessão {{Command}}",
       "new_topic": "Novo tópico {{Command}}",
       "paste_text_file_confirm": "Colar na caixa de entrada?",
       "pause": "Pausar",
@@ -621,6 +684,10 @@
       "placeholder_without_triggers": "Escreve a tua mensagem aqui, pressiona {{key}} para enviar",
       "send": "Enviar",
       "settings": "Configurações",
+      "slash_commands": {
+        "description": "Comandos de barra da sessão do agente",
+        "title": "Comandos de Barra"
+      },
       "thinking": {
         "budget_exceeds_max": "Orçamento de pensamento excede o número máximo de tokens",
         "label": "Pensando",
@@ -1081,6 +1148,7 @@
     "fullscreen": "Entrou no modo de tela cheia, pressione F11 para sair",
     "go_to_settings": "Ir para configurações",
     "i_know": "Entendi",
+    "ignore": "Pular",
     "inspect": "Verificar",
     "invalid_value": "Valor inválido",
     "knowledge_base": "Base de Conhecimento",
@@ -1092,6 +1160,7 @@
     "name": "Nome",
     "no_results": "Nenhum resultado",
     "none": "Nenhum",
+    "off": "Desligado",
     "open": "Abrir",
     "paste": "Colar",
     "placeholders": {
@@ -1318,6 +1387,36 @@
     "generating": "Gerando",
     "preview": "Visualizar",
     "split": "Dividir"
+  },
+  "import": {
+    "chatgpt": {
+      "assistant_name": "Importação do ChatGPT",
+      "button": "Selecionar Arquivo",
+      "description": "Importa apenas o texto da conversa, não inclui imagens e anexos",
+      "error": {
+        "invalid_json": "Formato de arquivo JSON inválido",
+        "no_conversations": "Nenhuma conversa encontrada no arquivo",
+        "no_valid_conversations": "Nenhuma conversa válida para importar",
+        "unknown": "Falha na importação, verifique o formato do arquivo"
+      },
+      "help": {
+        "step1": "1. Faça login no ChatGPT, vá para Configurações > Controles de dados > Exportar dados",
+        "step2": "2. Aguarde o arquivo de exportação por e-mail",
+        "step3": "3. Extraia o arquivo baixado e localize conversations.json",
+        "title": "Como exportar conversas do ChatGPT?"
+      },
+      "importing": "Importando conversas...",
+      "selecting": "Selecionando arquivo...",
+      "success": "Importadas com sucesso {{topics}} conversas com {{messages}} mensagens",
+      "title": "Importar Conversas do ChatGPT",
+      "untitled_conversation": "Conversa Sem Título"
+    },
+    "confirm": {
+      "button": "Selecionar Arquivo de Importação",
+      "label": "Tem certeza de que deseja importar dados externos?"
+    },
+    "content": "Selecione o arquivo de conversa do aplicativo externo para importar; atualmente, apenas arquivos no formato JSON do ChatGPT são suportados.",
+    "title": "Importar Conversas Externas"
   },
   "knowledge": {
     "add": {
@@ -1731,6 +1830,9 @@
     },
     "message": {
       "code_style": "Estilo de código",
+      "compact": {
+        "title": "Conversa Compactada"
+      },
       "delete": {
         "content": "Tem certeza de que deseja excluir esta mensagem?",
         "title": "Excluir mensagem"
@@ -2427,6 +2529,7 @@
   },
   "provider": {
     "302ai": "302.AI",
+    "ai-gateway": "Gateway de IA",
     "aihubmix": "AiHubMix",
     "aionly": "AiOnly",
     "alayanew": "Alaya NeW",
@@ -2437,6 +2540,7 @@
     "baidu-cloud": "Nuvem Baidu",
     "burncloud": "BurnCloud",
     "cephalon": "Cephalon",
+    "cerebras": "Cerebras AI",
     "cherryin": "CherryIN",
     "copilot": "GitHub Copiloto",
     "dashscope": "Área de Atuação AliCloud",
@@ -2471,12 +2575,13 @@
     "openrouter": "OpenRouter",
     "ovms": "Intel OVMS",
     "perplexity": "Perplexidade",
-    "ph8": "Plataforma Aberta de Grandes Modelos PH8",
+    "ph8": "PH8",
     "poe": "Poe",
     "ppio": "PPIO Nuvem Piao",
     "qiniu": "Qiniu AI",
     "qwenlm": "QwenLM",
     "silicon": "Silício em Fluxo",
+    "sophnet": "SophNet",
     "stepfun": "Função de Passo Estelar",
     "tencent-cloud-ti": "Nuvem TI da Tencent",
     "together": "Juntos",
@@ -3022,6 +3127,7 @@
         "basic": "Configurações Básicas",
         "cloud_storage": "Configurações de Armazenamento em Nuvem",
         "export_settings": "Configurações de Exportação",
+        "import_settings": "Importar Configurações",
         "third_party": "Conexões de Terceiros"
       },
       "export_menu": {
@@ -3080,6 +3186,11 @@
       },
       "hour_interval_one": "{{count}} hora",
       "hour_interval_other": "{{count}} horas",
+      "import_settings": {
+        "button": "Importar Arquivo Json",
+        "chatgpt": "Importar do ChatGPT",
+        "title": "Importar Dados de Aplicações Externas"
+      },
       "joplin": {
         "check": {
           "button": "Verificar",
@@ -3661,6 +3772,9 @@
       },
       "view_webdav_settings": "Ver configurações WebDAV"
     },
+    "groq": {
+      "title": "Configurações do Groq"
+    },
     "hardware_acceleration": {
       "confirm": {
         "content": "A desativação da aceleração de hardware requer a reinicialização do aplicativo para entrar em vigor. Deseja reiniciar agora?",
@@ -3760,6 +3874,7 @@
         "description": "Não ativar a funcionalidade do serviço MCP",
         "label": "Não usar servidor MCP"
       },
+      "discover": "Descobrir",
       "duplicateName": "Já existe um servidor com o mesmo nome",
       "editJson": "Editar JSON",
       "editMcpJson": "Editar Configuração MCP",
@@ -3769,6 +3884,10 @@
       "errors": {
         "32000": "Falha ao iniciar o servidor MCP, verifique se todos os parâmetros foram preenchidos corretamente conforme o tutorial",
         "toolNotFound": "Ferramenta não encontrada {{name}}"
+      },
+      "fetch": {
+        "button": "Buscar Servidores",
+        "success": "Servidores MCP obtidos com sucesso"
       },
       "findMore": "Mais servidores MCP",
       "headers": "Cabeçalhos da Requisição",
@@ -3785,6 +3904,7 @@
       "logoUrl": "URL do Logotipo",
       "longRunning": "Modo de execução prolongada",
       "longRunningTooltip": "Quando ativado, o servidor suporta tarefas de longa duração, redefinindo o temporizador de tempo limite ao receber notificações de progresso e estendendo o tempo máximo de tempo limite para 10 minutos.",
+      "marketplaces": "Mercados",
       "missingDependencies": "Ausente, instale para continuar",
       "more": {
         "awesome": "Lista selecionada de servidores MCP",
@@ -3816,6 +3936,12 @@
         "usage": "Uso",
         "version": "Versão"
       },
+      "oauth": {
+        "callback": {
+          "message": "Você pode fechar esta página e retornar ao Cherry Studio",
+          "title": "Autenticação Bem-Sucedida"
+        }
+      },
       "prompts": {
         "arguments": "Argumentos",
         "availablePrompts": "Dicas disponíveis",
@@ -3833,6 +3959,7 @@
       "provider": "Fornecedor",
       "providerPlaceholder": "Nome do Fornecedor",
       "providerUrl": "URL do Fornecedor",
+      "providers": "Fornecedores",
       "registry": "Fonte de Gerenciamento de Pacotes",
       "registryDefault": "Padrão",
       "registryTooltip": "Selecione uma fonte alternativa para instalar pacotes, caso tenha problemas de rede com a fonte padrão.",
@@ -3855,6 +3982,7 @@
       "searchNpx": "Buscar MCP",
       "serverPlural": "Servidores",
       "serverSingular": "Servidor",
+      "servers": "Servidores MCP",
       "sse": "Eventos do Servidor (sse)",
       "startError": "Falha ao Iniciar",
       "stdio": "Entrada/Saída Padrão (stdio)",
@@ -4137,7 +4265,6 @@
         "default": "Padrão",
         "flex": "Flexível",
         "on_demand": "sob demanda",
-        "performance": "desempenho",
         "priority": "prioridade",
         "tip": "Especifique o nível de latência usado para processar a solicitação",
         "title": "Nível de Serviço"
@@ -4234,6 +4361,10 @@
           "stream_options": {
             "help": "O fornecedor suporta o parâmetro stream_options?",
             "label": "suporta stream_options"
+          },
+          "verbosity": {
+            "help": "Se o provedor suporta o parâmetro de verbosidade",
+            "label": "Suportar verbosidade"
           }
         },
         "url": {
@@ -4254,6 +4385,12 @@
       "aws-bedrock": {
         "access_key_id": "ID da chave de acesso da AWS",
         "access_key_id_help": "O seu ID da chave de acesso AWS, utilizado para aceder ao serviço AWS Bedrock",
+        "api_key": "Chave de API do Bedrock",
+        "api_key_help": "Sua Chave de API AWS Bedrock para autenticação",
+        "auth_type": "Tipo de Autenticação",
+        "auth_type_api_key": "Chave de API do Bedrock",
+        "auth_type_help": "Escolha entre credenciais IAM ou autenticação por chave de API do Bedrock",
+        "auth_type_iam": "Credenciais IAM",
         "description": "A AWS Bedrock é um serviço de modelos fundamentais totalmente gerido fornecido pela Amazon, que suporta diversos modelos avançados de linguagem.",
         "region": "Região da AWS",
         "region_help": "A sua região de serviço da AWS, por exemplo, us-east-1",
@@ -4263,7 +4400,7 @@
       },
       "azure": {
         "apiversion": {
-          "tip": "Versão da API do Azure OpenAI. Se desejar usar a API de Resposta, insira a versão de visualização"
+          "tip": "Versão da API do Azure OpenAI. Se desejar usar a API de Resposta, insira a versão de v1"
         }
       },
       "basic_auth": {
@@ -4398,6 +4535,7 @@
       "confirm": "Confirmar",
       "forward": "Avançar",
       "multiple": "Múltipla Seleção",
+      "noResult": "Nenhum resultado encontrado",
       "page": "Página",
       "select": "Selecionar",
       "title": "Menu de Atalho"

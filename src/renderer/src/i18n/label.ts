@@ -85,7 +85,10 @@ const providerKeyMap = {
   poe: 'provider.poe',
   aionly: 'provider.aionly',
   longcat: 'provider.longcat',
-  huggingface: 'provider.huggingface'
+  huggingface: 'provider.huggingface',
+  sophnet: 'provider.sophnet',
+  'ai-gateway': 'provider.ai-gateway',
+  cerebras: 'provider.cerebras'
 } as const
 
 /**
@@ -238,7 +241,7 @@ const paintingsImageSizeOptionsKeyMap = {
 } as const
 
 export const getPaintingsImageSizeOptionsLabel = (key: string): string => {
-  return getLabel(paintingsImageSizeOptionsKeyMap, key)
+  return paintingsImageSizeOptionsKeyMap[key] ? getLabel(paintingsImageSizeOptionsKeyMap, key) : key
 }
 
 const paintingsQualityOptionsKeyMap = {
@@ -308,7 +311,7 @@ export const getHttpMessageLabel = (key: string): string => {
 }
 
 const reasoningEffortOptionsKeyMap: Record<ThinkingOption, string> = {
-  off: 'assistants.settings.reasoning_effort.off',
+  none: 'assistants.settings.reasoning_effort.off',
   minimal: 'assistants.settings.reasoning_effort.minimal',
   high: 'assistants.settings.reasoning_effort.high',
   low: 'assistants.settings.reasoning_effort.low',

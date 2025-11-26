@@ -23,7 +23,6 @@ import type {
   GoogleGenAI,
   Model as GeminiModel,
   SendMessageParameters,
-  ThinkingConfig,
   Tool
 } from '@google/genai'
 
@@ -92,9 +91,13 @@ export type ReasoningEffortOptionalParams = {
   }
   extra_body?: {
     google?: {
-      thinking_config: ThinkingConfig
+      thinking_config: {
+        thinking_budget: number
+        include_thoughts?: boolean
+      }
     }
   }
+  disable_reasoning?: boolean
   // Add any other potential reasoning-related keys here if they exist
 }
 
@@ -122,6 +125,10 @@ export type OpenAIExtraBody = {
   translation_options?: {
     source_lang: 'auto'
     target_lang: string
+  }
+  // for gpt-5 series models verbosity control
+  text?: {
+    verbosity?: 'low' | 'medium' | 'high'
   }
 }
 // image is for openrouter. audio is ignored for now

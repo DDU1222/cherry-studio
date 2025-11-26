@@ -10,7 +10,6 @@ import { DEFAULT_MAX_TOKENS } from '@renderer/config/constant'
 import {
   findTokenLimit,
   GEMINI_FLASH_MODEL_REGEX,
-  getOpenAIWebSearchParams,
   getThinkModelType,
   isClaudeReasoningModel,
   isDeepSeekHybridInferenceModel,
@@ -35,16 +34,11 @@ import {
   isSupportedThinkingTokenModel,
   isSupportedThinkingTokenQwenModel,
   isSupportedThinkingTokenZhipuModel,
+  isSupportVerbosityModel,
   isVisionModel,
   MODEL_SUPPORTED_REASONING_EFFORT,
   ZHIPU_RESULT_TOKENS
 } from '@renderer/config/models'
-import {
-  isSupportArrayContentProvider,
-  isSupportDeveloperRoleProvider,
-  isSupportEnableThinkingProvider,
-  isSupportStreamOptionsProvider
-} from '@renderer/config/providers'
 import { mapLanguageToQwenMTModel } from '@renderer/config/translate'
 import { processPostsuffixQwen3Model, processReqMessages } from '@renderer/services/ModelMessageService'
 import { estimateTextTokens } from '@renderer/services/TokenService'
@@ -88,6 +82,12 @@ import {
   openAIToolsToMcpTool
 } from '@renderer/utils/mcp-tools'
 import { findFileBlocks, findImageBlocks } from '@renderer/utils/messageUtils/find'
+import {
+  isSupportArrayContentProvider,
+  isSupportDeveloperRoleProvider,
+  isSupportEnableThinkingProvider,
+  isSupportStreamOptionsProvider
+} from '@renderer/utils/provider'
 import { t } from 'i18next'
 
 import type { GenericChunk } from '../../middleware/schemas'
@@ -192,7 +192,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
             extra_body: {
               google: {
                 thinking_config: {
-                  thinkingBudget: 0
+                  thinking_budget: 0
                 }
               }
             }
@@ -327,8 +327,8 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
           extra_body: {
             google: {
               thinking_config: {
-                thinkingBudget: -1,
-                includeThoughts: true
+                thinking_budget: -1,
+                include_thoughts: true
               }
             }
           }
@@ -338,8 +338,8 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
         extra_body: {
           google: {
             thinking_config: {
-              thinkingBudget: budgetTokens,
-              includeThoughts: true
+              thinking_budget: budgetTokens,
+              include_thoughts: true
             }
           }
         }
@@ -670,7 +670,7 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
             } else if (isClaudeReasoningModel(model) && reasoningEffort.thinking?.budget_tokens) {
               suffix = ` --thinking_budget ${reasoningEffort.thinking.budget_tokens}`
             } else if (isGeminiReasoningModel(model) && reasoningEffort.extra_body?.google?.thinking_config) {
-              suffix = ` --thinking_budget ${reasoningEffort.extra_body.google.thinking_config.thinkingBudget}`
+              suffix = ` --thinking_budget ${reasoningEffort.extra_body.google.thinking_config.thinking_budget}`
             }
             // FIXME: poe 不支持多个text part，上传文本文件的时候用的不是file part而是text part，因此会出问题
             // 临时解决方案是强制poe用string content，但是其实poe部分支持array
@@ -733,9 +733,16 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
           ...modalities,
           // groq 有不同的 service tier 配置，不符合 openai 接口类型
           service_tier: this.getServiceTier(model) as OpenAIServiceTier,
+          ...(isSupportVerbosityModel(model)
+            ? {
+                text: {
+                  verbosity: this.getVerbosity(model)
+                }
+              }
+            : {}),
           ...this.getProviderSpecificParameters(assistant, model),
           ...reasoningEffort,
-          ...getOpenAIWebSearchParams(model, enableWebSearch),
+          // ...getOpenAIWebSearchParams(model, enableWebSearch),
           // OpenRouter usage tracking
           ...(this.provider.id === 'openrouter' ? { usage: { include: true } } : {}),
           ...extra_body,

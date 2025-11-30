@@ -893,7 +893,7 @@
         "title": "コード実行"
       },
       "code_fancy_block": {
-        "label": "<translate_input>\n装飾的なコードブロック\n</translate_input>",
+        "label": "装飾的なコードブロック",
         "tip": "より見栄えの良いコードブロックスタイルを使用する、例えばHTMLカード"
       },
       "code_image_tools": {
@@ -1208,7 +1208,7 @@
   "endpoint_type": {
     "anthropic": "Anthropic",
     "gemini": "Gemini",
-    "image-generation": "画像生成",
+    "image-generation": "画像生成 (OpenAI)",
     "jina-rerank": "Jina Rerank",
     "openai": "OpenAI",
     "openai-response": "OpenAI-Response"
@@ -1297,7 +1297,7 @@
     "statusCode": "ステータスコード",
     "statusText": "状態テキスト",
     "text": "テキスト",
-    "toolInput": "<translate_input>\nツール入力\n</translate_input>",
+    "toolInput": "ツール入力",
     "toolName": "ツール名",
     "unknown": "不明なエラー",
     "usage": "用量",
@@ -1505,6 +1505,7 @@
     "notes_placeholder": "このナレッジベースの追加情報やコンテキストを入力...",
     "provider_not_found": "プロバイダーが見つかりません",
     "quota": "{{name}} 残りクォータ: {{quota}}",
+    "quota_empty": "本日の{{name}}クォータが不足しています。公式サイトで申請してください",
     "quota_infinity": "{{name}} クォータ: 無制限",
     "rename": "名前を変更",
     "search": "ナレッジベースを検索",

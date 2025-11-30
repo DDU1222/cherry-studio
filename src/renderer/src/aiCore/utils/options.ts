@@ -36,6 +36,7 @@ import { isSupportServiceTierProvider, isSupportVerbosityProvider } from '@rende
 import type { JSONValue } from 'ai'
 import { t } from 'i18next'
 
+import { addAnthropicHeaders } from '../prepareParams/header'
 import { getAiSdkProviderId } from '../provider/factory'
 import { buildGeminiGenerateImageParams } from './image'
 import {
@@ -91,9 +92,21 @@ function getServiceTier<T extends Provider>(model: Model, provider: T): OpenAISe
   }
 }
 
-function getVerbosity(): OpenAIVerbosity {
+function getVerbosity(model: Model): OpenAIVerbosity {
+  if (!isSupportVerbosityModel(model) || !isSupportVerbosityProvider(getProviderById(model.provider)!)) {
+    return undefined
+  }
   const openAI = getStoreSetting('openAI')
-  return openAI.verbosity
+
+  const userVerbosity = openAI.verbosity
+
+  if (userVerbosity) {
+    const supportedVerbosity = getModelSupportedVerbosity(model)
+    // Use user's verbosity if supported, otherwise use the first supported option
+    const verbosity = supportedVerbosity.includes(userVerbosity) ? userVerbosity : supportedVerbosity[0]
+    return verbosity
+  }
+  return undefined
 }
 
 /**
@@ -148,7 +161,7 @@ export function buildProviderOptions(
   // 构建 provider 特定的选项
   let providerSpecificOptions: Record<string, any> = {}
   const serviceTier = getServiceTier(model, actualProvider)
-  const textVerbosity = getVerbosity()
+  const textVerbosity = getVerbosity(model)
   // 根据 provider 类型分离构建逻辑
   const { data: baseProviderId, success } = baseProviderIdSchema.safeParse(rawProviderId)
   if (success) {
@@ -163,7 +176,8 @@ export function buildProviderOptions(
             assistant,
             model,
             capabilities,
-            serviceTier
+            serviceTier,
+            textVerbosity
           )
           providerSpecificOptions = options
         }
@@ -196,7 +210,8 @@ export function buildProviderOptions(
           model,
           capabilities,
           actualProvider,
-          serviceTier
+          serviceTier,
+          textVerbosity
         )
         break
       default:
@@ -249,11 +264,13 @@ export function buildProviderOptions(
       'google-vertex': 'google',
       'google-vertex-anthropic': 'anthropic',
       'azure-anthropic': 'anthropic',
-      'ai-gateway': 'gateway'
+      'ai-gateway': 'gateway',
+      azure: 'openai',
+      'azure-responses': 'openai'
     }[rawProviderId] || rawProviderId
 
   if (rawProviderKey === 'cherryin') {
-    rawProviderKey = { gemini: 'google' }[actualProvider.type] || actualProvider.type
+    rawProviderKey = { gemini: 'google', ['openai-response']: 'openai' }[actualProvider.type] || actualProvider.type
   }
 
   // 返回 AI Core SDK 要求的格式：{ 'providerId': providerOptions } 以及提取的标准参数
@@ -276,7 +293,8 @@ function buildOpenAIProviderOptions(
     enableWebSearch: boolean
     enableGenerateImage: boolean
   },
-  serviceTier: OpenAIServiceTier
+  serviceTier: OpenAIServiceTier,
+  textVerbosity?: OpenAIVerbosity
 ): OpenAIResponsesProviderOptions {
   const { enableReasoning } = capabilities
   let providerOptions: OpenAIResponsesProviderOptions = {}
@@ -312,7 +330,8 @@ function buildOpenAIProviderOptions(
 
   providerOptions = {
     ...providerOptions,
-    serviceTier
+    serviceTier,
+    textVerbosity
   }
 
   return providerOptions
@@ -411,11 +430,13 @@ function buildCherryInProviderOptions(
     enableGenerateImage: boolean
   },
   actualProvider: Provider,
-  serviceTier: OpenAIServiceTier
+  serviceTier: OpenAIServiceTier,
+  textVerbosity: OpenAIVerbosity
 ): OpenAIResponsesProviderOptions | AnthropicProviderOptions | GoogleGenerativeAIProviderOptions {
   switch (actualProvider.type) {
     case 'openai':
-      return buildOpenAIProviderOptions(assistant, model, capabilities, serviceTier)
+    case 'openai-response':
+      return buildOpenAIProviderOptions(assistant, model, capabilities, serviceTier, textVerbosity)
 
     case 'anthropic':
       return buildAnthropicProviderOptions(assistant, model, capabilities)
@@ -447,6 +468,11 @@ function buildBedrockProviderOptions(
       ...providerOptions,
       ...reasoningParams
     }
+  }
+
+  const betaHeaders = addAnthropicHeaders(assistant, model)
+  if (betaHeaders.length > 0) {
+    providerOptions.anthropicBeta = betaHeaders
   }
 
   return providerOptions

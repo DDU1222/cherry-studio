@@ -172,7 +172,11 @@ export function isGeminiProvider(provider: Provider): boolean {
 }
 
 export function isAIGatewayProvider(provider: Provider): boolean {
-  return provider.type === 'ai-gateway'
+  return provider.type === 'gateway'
+}
+
+export function isOllamaProvider(provider: Provider): boolean {
+  return provider.type === 'ollama'
 }
 
 const NOT_SUPPORT_API_VERSION_PROVIDERS = ['github', 'copilot', 'perplexity'] as const satisfies SystemProviderId[]
@@ -183,3 +187,13 @@ export const isSupportAPIVersionProvider = (provider: Provider) => {
   }
   return provider.apiOptions?.isNotSupportAPIVersion !== false
 }
+
+export const NOT_SUPPORT_API_KEY_PROVIDERS: readonly SystemProviderId[] = [
+  'ollama',
+  'lmstudio',
+  'vertexai',
+  'aws-bedrock',
+  'copilot'
+]
+
+export const NOT_SUPPORT_API_KEY_PROVIDER_TYPES: readonly ProviderType[] = ['vertexai', 'aws-bedrock']

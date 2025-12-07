@@ -280,6 +280,7 @@
         "denied": "Tool-Anfrage wurde abgelehnt.",
         "timeout": "Tool-Anfrage ist abgelaufen, bevor eine Genehmigung eingegangen ist."
       },
+      "toolPendingFallback": "Werkzeug",
       "waiting": "Warten auf Entscheidung über Tool-Berechtigung..."
     },
     "type": {
@@ -1161,6 +1162,7 @@
     "no_results": "Keine Ergebnisse",
     "none": "Keine",
     "off": "Aus",
+    "on": "An",
     "open": "Öffnen",
     "paste": "Einfügen",
     "placeholders": {
@@ -2218,7 +2220,10 @@
     "untitled_folder": "Neuer Ordner",
     "untitled_note": "Unbenannte Notiz",
     "upload_failed": "Notizen-Upload fehlgeschlagen",
-    "upload_success": "Notizen erfolgreich hochgeladen"
+    "upload_files": "[to be translated]:Upload Files",
+    "upload_folder": "[to be translated]:Upload Folder",
+    "upload_success": "Notizen erfolgreich hochgeladen",
+    "uploading_files": "[to be translated]:Uploading {{count}} files..."
   },
   "notification": {
     "assistant": "Assistenten-Antwort",
@@ -4270,6 +4275,12 @@
         "tip": "Latenz-Ebene für Anfrageverarbeitung festlegen",
         "title": "Service-Tier"
       },
+      "stream_options": {
+        "include_usage": {
+          "tip": "Ob die Token-Nutzung enthalten ist (gilt nur für die OpenAI Chat Completions API)",
+          "title": "Nutzung einbeziehen"
+        }
+      },
       "summary_text_mode": {
         "auto": "Automatisch",
         "concise": "Kompakt",
@@ -4371,7 +4382,7 @@
         "url": {
           "preview": "Vorschau: {{url}}",
           "reset": "Zurücksetzen",
-          "tip": "# am Ende erzwingt die Verwendung der Eingabe-Adresse"
+          "tip": "Fügen Sie am Ende ein # hinzu, um die automatisch angehängte API-Version zu deaktivieren."
         }
       },
       "api_host": "API-Adresse",

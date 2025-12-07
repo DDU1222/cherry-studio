@@ -280,6 +280,7 @@
         "denied": "ツールリクエストは拒否されました。",
         "timeout": "ツールリクエストは承認を受ける前にタイムアウトしました。"
       },
+      "toolPendingFallback": "ツール",
       "waiting": "ツールの許可決定を待っています..."
     },
     "type": {
@@ -1161,6 +1162,7 @@
     "no_results": "検索結果なし",
     "none": "無",
     "off": "オフ",
+    "on": "オン",
     "open": "開く",
     "paste": "貼り付け",
     "placeholders": {
@@ -2218,7 +2220,10 @@
     "untitled_folder": "新ファイル夹",
     "untitled_note": "無題のメモ",
     "upload_failed": "ノートのアップロードに失敗しました",
-    "upload_success": "ノートのアップロードが成功しました"
+    "upload_files": "[to be translated]:Upload Files",
+    "upload_folder": "[to be translated]:Upload Folder",
+    "upload_success": "ノートのアップロードが成功しました",
+    "uploading_files": "[to be translated]:Uploading {{count}} files..."
   },
   "notification": {
     "assistant": "助手回應",
@@ -4270,6 +4275,12 @@
         "tip": "リクエスト処理に使用するレイテンシティアを指定します",
         "title": "サービスティア"
       },
+      "stream_options": {
+        "include_usage": {
+          "tip": "トークン使用量が含まれるかどうか (OpenAI Chat Completions APIのみに適用)",
+          "title": "使用法を含める"
+        }
+      },
       "summary_text_mode": {
         "auto": "自動",
         "concise": "簡潔",
@@ -4371,7 +4382,7 @@
         "url": {
           "preview": "プレビュー: {{url}}",
           "reset": "リセット",
-          "tip": "#で終わる場合、入力されたアドレスを強制的に使用します"
+          "tip": "自動的に付加されるAPIバージョンを無効にするには、末尾に#を追加します。"
         }
       },
       "api_host": "APIホスト",

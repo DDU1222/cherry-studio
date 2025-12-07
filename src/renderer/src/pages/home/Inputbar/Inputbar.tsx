@@ -14,7 +14,6 @@ import { useInputText } from '@renderer/hooks/useInputText'
 import { useMessageOperations, useTopicLoading } from '@renderer/hooks/useMessageOperations'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { useShortcut } from '@renderer/hooks/useShortcuts'
-import { useSidebarIconShow } from '@renderer/hooks/useSidebarIcon'
 import { useTextareaResize } from '@renderer/hooks/useTextareaResize'
 import { useTimer } from '@renderer/hooks/useTimer'
 import {
@@ -144,13 +143,14 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     resize: resizeTextArea,
     focus: focusTextarea,
     setExpanded,
-    isExpanded: textareaIsExpanded
+    isExpanded: textareaIsExpanded,
+    customHeight,
+    setCustomHeight
   } = useTextareaResize({
-    maxHeight: 400,
+    maxHeight: 500,
     minHeight: 30
   })
 
-  const showKnowledgeIcon = useSidebarIconShow('knowledge')
   const { assistant, addTopic, model, setModel, updateAssistant } = useAssistant(initialAssistant.id)
   const { sendMessageShortcut, showInputEstimatedTokens, enableQuickPanelTriggers } = useSettings()
   const [estimateTokenCount, setEstimateTokenCount] = useState(0)
@@ -259,7 +259,7 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
       setText('')
       setFiles([])
       setTimeoutTimer('sendMessage_1', () => setText(''), 500)
-      setTimeoutTimer('sendMessage_2', () => resizeTextArea(true), 0)
+      setTimeoutTimer('sendMessage_2', () => resizeTextArea(), 0)
     } catch (error) {
       logger.warn('Failed to send message:', error as Error)
       parent?.recordException(error as Error)
@@ -407,9 +407,10 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
     focusTextarea
   ])
 
+  // TODO: Just use assistant.knowledge_bases as selectedKnowledgeBases. context state is overdesigned.
   useEffect(() => {
-    setSelectedKnowledgeBases(showKnowledgeIcon ? (assistant.knowledge_bases ?? []) : [])
-  }, [assistant.knowledge_bases, setSelectedKnowledgeBases, showKnowledgeIcon])
+    setSelectedKnowledgeBases(assistant.knowledge_bases ?? [])
+  }, [assistant.knowledge_bases, setSelectedKnowledgeBases])
 
   useEffect(() => {
     // Disable web search if model doesn't support it
@@ -479,6 +480,8 @@ const InputbarInner: FC<InputbarInnerProps> = ({ assistant: initialAssistant, se
       text={text}
       onTextChange={setText}
       textareaRef={textareaRef}
+      height={customHeight}
+      onHeightChange={setCustomHeight}
       resizeTextArea={resizeTextArea}
       focusTextarea={focusTextarea}
       isLoading={loading}

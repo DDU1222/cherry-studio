@@ -280,6 +280,7 @@
         "denied": "Solicitação de ferramenta foi negada.",
         "timeout": "A solicitação da ferramenta expirou antes de receber aprovação."
       },
+      "toolPendingFallback": "Ferramenta",
       "waiting": "Aguardando decisão de permissão da ferramenta..."
     },
     "type": {
@@ -1161,6 +1162,7 @@
     "no_results": "Nenhum resultado",
     "none": "Nenhum",
     "off": "Desligado",
+    "on": "Ligado",
     "open": "Abrir",
     "paste": "Colar",
     "placeholders": {
@@ -2218,7 +2220,10 @@
     "untitled_folder": "Nova pasta",
     "untitled_note": "Nota sem título",
     "upload_failed": "Falha ao carregar a nota",
-    "upload_success": "Nota carregada com sucesso"
+    "upload_files": "[to be translated]:Upload Files",
+    "upload_folder": "[to be translated]:Upload Folder",
+    "upload_success": "Nota carregada com sucesso",
+    "uploading_files": "[to be translated]:Uploading {{count}} files..."
   },
   "notification": {
     "assistant": "Resposta do assistente",
@@ -4270,6 +4275,12 @@
         "tip": "Especifique o nível de latência usado para processar a solicitação",
         "title": "Nível de Serviço"
       },
+      "stream_options": {
+        "include_usage": {
+          "tip": "Se o uso de tokens está incluído (aplicável apenas à API de Conclusões de Chat da OpenAI)",
+          "title": "Incluir uso"
+        }
+      },
       "summary_text_mode": {
         "auto": "Automático",
         "concise": "Conciso",
@@ -4371,7 +4382,7 @@
         "url": {
           "preview": "Pré-visualização: {{url}}",
           "reset": "Redefinir",
-          "tip": "e forçar o uso do endereço original quando terminar com '#'"
+          "tip": "Adicione # no final para desativar a versão da API adicionada automaticamente."
         }
       },
       "api_host": "Endereço API",

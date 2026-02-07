@@ -28,6 +28,12 @@ files:
   - "!**/{tsconfig.json,tsconfig.tsbuildinfo,tsconfig.node.json,tsconfig.web.json}"
   - "!**/{.editorconfig,.jekyll-metadata}"
   - "!src"
+  - "!config"
+  - "!patches"
+  - "!app-upgrade-config.json"
+  - "!**/node_modules/**/*.cpp"
+  - "!**/node_modules/node-addon-api/**"
+  - "!**/node_modules/prebuild-install/**"
   - "!scripts"
   - "!local"
   - "!docs"
@@ -67,11 +73,6 @@ asarUnpack:
   - "**/*.{metal,exp,lib}"
   - "node_modules/@img/sharp-libvips-*/**"
 
-# copy from node_modules/claude-code-plugins/plugins to resources/data/claude-code-pluginso
-extraResources:
-  - from: "./node_modules/claude-code-plugins/plugins/"
-    to: "claude-code-plugins"
-
 win:
   executableName: Cherry Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
@@ -90,6 +91,7 @@ nsis:
   oneClick: false
   include: build/nsis-installer.nsh
   buildUniversalInstaller: false
+  differentialPackage: false
 portable:
   artifactName: ${productName}-${version}-${arch}-portable.${ext}
   buildUniversalInstaller: false
@@ -105,8 +107,11 @@ mac:
   target:
     - target: dmg
     - target: zip
+dmg:
+  writeUpdateInfo: false
 linux:
   artifactName: ${productName}-${version}-${arch}.${ext}
+  executableName: CherryStudio
   target:
     - target: AppImage
     - target: deb
@@ -115,6 +120,7 @@ linux:
   category: Utility
   desktop:
     entry:
+      Name: Cherry Studio
       StartupWMClass: CherryStudio
   mimeTypes:
     - x-scheme-handler/cherrystudio
@@ -134,60 +140,28 @@ artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
     <!--LANG:en-->
-    Cherry Studio 1.7.3 - Feature & Stability Update
-
-    This release brings new features, UI improvements, and important bug fixes.
+    Cherry Studio 1.7.17 - New Features & Bug Fixes
 
     ✨ New Features
-    - Add MCP server log viewer for better debugging
-    - Support custom Git Bash path configuration
-    - Add print to PDF and save as HTML for mini program webviews
-    - Add CherryIN API host selection settings
-    - Enhance assistant presets with sort and batch delete modes
-    - Open URL directly for SelectionAssistant search action
-    - Enhance web search tool switching with provider-specific context
-
-    🔧 Improvements
-    - Remove Intel Ultra limit for OVMS
-    - Improve settings tab and assistant item UI
+    - [Agent] Add "Open in Editor" button to agent workspace, supporting VS Code, Cursor, and Zed
+    - [Tools] Add OpenCode CLI tool support
 
     🐛 Bug Fixes
-    - Fix stack overflow with base64 images
-    - Fix infinite loop in knowledge queue processing
-    - Fix quick panel closing in multiple selection mode
-    - Fix thinking timer not stopping when reply is aborted
-    - Fix ThinkingButton icon display for fixed reasoning mode
-    - Fix knowledge query prioritization and intent prompt
-    - Fix OpenRouter embeddings support
-    - Fix SelectionAction window resize on Windows
-    - Add gpustack provider support for qwen3 thinking mode
+    - [Agent] Fix tool output display showing blank content during streaming
+    - [Models] Fix Kimi K2.5 model parameter error
+    - [Models] Fix reasoning parameter handling for Together AI and DashScope Kimi models
+    - [macOS] Fix npm detection when app launched from Dock/Finder
 
     <!--LANG:zh-CN-->
-    Cherry Studio 1.7.3 - 功能与稳定性更新
-
-    本次更新带来新功能、界面改进和重要的问题修复。
+    Cherry Studio 1.7.17 - 新功能与问题修复
 
     ✨ 新功能
-    - 新增 MCP 服务器日志查看器，便于调试
-    - 支持自定义 Git Bash 路径配置
-    - 小程序 webview 支持打印 PDF 和保存为 HTML
-    - 新增 CherryIN API 主机选择设置
-    - 助手预设增强：支持排序和批量删除模式
-    - 划词助手搜索操作直接打开 URL
-    - 增强网页搜索工具切换逻辑，支持服务商特定上下文
-
-    🔧 功能改进
-    - 移除 OVMS 的 Intel Ultra 限制
-    - 优化设置标签页和助手项目 UI
+    - [智能体] 新增"在编辑器中打开"按钮，支持 VS Code、Cursor、Zed
+    - [工具] 新增 OpenCode CLI 工具支持
 
     🐛 问题修复
-    - 修复 base64 图片导致的栈溢出问题
-    - 修复知识库队列处理的无限循环问题
-    - 修复多选模式下快捷面板意外关闭的问题
-    - 修复回复中止时思考计时器未停止的问题
-    - 修复固定推理模式下思考按钮图标显示问题
-    - 修复知识库查询优先级和意图提示
-    - 修复 OpenRouter 嵌入模型支持
-    - 修复 Windows 上划词助手窗口大小调整问题
-    - 为 gpustack 服务商添加 qwen3 思考模式支持
+    - [智能体] 修复工具流式输出时内容显示为空的问题
+    - [模型] 修复 Kimi K2.5 模型参数错误
+    - [模型] 修复 Together AI 和 DashScope Kimi 推理模型的参数处理
+    - [macOS] 修复从 Dock/Finder 启动时 npm 检测失败的问题
     <!--LANG:END-->

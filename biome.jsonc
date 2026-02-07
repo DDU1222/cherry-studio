@@ -23,7 +23,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/.claude/**", "!**/.vscode/**"],
+    "includes": ["**", "!**/.claude/**", "!**/.vscode/**", "!**/.conductor/**"],
     "maxSize": 2097152
   },
   "formatter": {
@@ -50,7 +50,8 @@
       "!*.json",
       "!src/main/integration/**",
       "!**/tailwind.css",
-      "!**/package.json"
+      "!**/package.json",
+      "!.zed/**"
     ],
     "indentStyle": "space",
     "indentWidth": 2,

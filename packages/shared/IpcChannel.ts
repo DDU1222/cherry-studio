@@ -48,6 +48,7 @@ export enum IpcChannel {
 
   App_QuoteToMain = 'app:quote-to-main',
   App_SetDisableHardwareAcceleration = 'app:set-disable-hardware-acceleration',
+  App_SetUseSystemTitleBar = 'app:set-use-system-title-bar',
 
   Notification_Send = 'notification:send',
   Notification_OnClick = 'notification:on-click',
@@ -113,6 +114,14 @@ export enum IpcChannel {
   Copilot_Logout = 'copilot:logout',
   Copilot_GetUser = 'copilot:get-user',
 
+  // CherryIN OAuth
+  CherryIN_SaveToken = 'cherryin:save-token',
+  CherryIN_HasToken = 'cherryin:has-token',
+  CherryIN_GetBalance = 'cherryin:get-balance',
+  CherryIN_Logout = 'cherryin:logout',
+  CherryIN_StartOAuthFlow = 'cherryin:start-oauth-flow',
+  CherryIN_ExchangeToken = 'cherryin:exchange-token',
+
   // obsidian
   Obsidian_GetVaults = 'obsidian:get-vaults',
   Obsidian_GetFiles = 'obsidian:get-files',
@@ -156,7 +165,6 @@ export enum IpcChannel {
   KnowledgeBase_Remove = 'knowledge-base:remove',
   KnowledgeBase_Search = 'knowledge-base:search',
   KnowledgeBase_Rerank = 'knowledge-base:rerank',
-  KnowledgeBase_Check_Quota = 'knowledge-base:check-quota',
 
   //file
   File_Open = 'file:open',
@@ -194,6 +202,7 @@ export enum IpcChannel {
   Fs_ReadText = 'fs:readText',
   File_OpenWithRelativePath = 'file:openWithRelativePath',
   File_IsTextFile = 'file:isTextFile',
+  File_IsDirectory = 'file:isDirectory',
   File_ListDirectory = 'file:listDirectory',
   File_GetDirectoryStructure = 'file:getDirectoryStructure',
   File_CheckFileName = 'file:checkFileName',
@@ -233,6 +242,8 @@ export enum IpcChannel {
   Backup_ListS3Files = 'backup:listS3Files',
   Backup_DeleteS3File = 'backup:deleteS3File',
   Backup_CheckS3Connection = 'backup:checkS3Connection',
+  Backup_CreateLanTransferBackup = 'backup:createLanTransferBackup',
+  Backup_DeleteTempBackup = 'backup:deleteTempBackup',
 
   // zip
   Zip_Compress = 'zip:compress',
@@ -244,6 +255,7 @@ export enum IpcChannel {
   System_GetCpuName = 'system:getCpuName',
   System_CheckGitBash = 'system:checkGitBash',
   System_GetGitBashPath = 'system:getGitBashPath',
+  System_GetGitBashPathInfo = 'system:getGitBashPathInfo',
   System_SetGitBashPath = 'system:setGitBashPath',
 
   // DevTools
@@ -315,6 +327,7 @@ export enum IpcChannel {
   Memory_DeleteUser = 'memory:delete-user',
   Memory_DeleteAllMemoriesForUser = 'memory:delete-all-memories-for-user',
   Memory_GetUsersList = 'memory:get-users-list',
+  Memory_MigrateMemoryDb = 'memory:migrate-memory-db',
 
   // TRACE
   TRACE_SAVE_DATA = 'trace:saveData',
@@ -348,6 +361,9 @@ export enum IpcChannel {
   Anthropic_HasCredentials = 'anthropic:has-credentials',
   Anthropic_ClearCredentials = 'anthropic:clear-credentials',
 
+  // ExternalApps
+  ExternalApps_DetectInstalled = 'external-apps:detect-installed',
+
   // CodeTools
   CodeTools_Run = 'code-tools:run',
   CodeTools_GetAvailableTerminals = 'code-tools:get-available-terminals',
@@ -360,6 +376,7 @@ export enum IpcChannel {
   OCR_ListProviders = 'ocr:list-providers',
 
   // OVMS
+  Ovms_IsSupported = 'ovms:is-supported',
   Ovms_AddModel = 'ovms:add-model',
   Ovms_StopAddModel = 'ovms:stop-addmodel',
   Ovms_GetModels = 'ovms:get-models',
@@ -372,18 +389,38 @@ export enum IpcChannel {
   Cherryai_GetSignature = 'cherryai:get-signature',
 
   // Claude Code Plugins
-  ClaudeCodePlugin_ListAvailable = 'claudeCodePlugin:list-available',
   ClaudeCodePlugin_Install = 'claudeCodePlugin:install',
   ClaudeCodePlugin_Uninstall = 'claudeCodePlugin:uninstall',
+  ClaudeCodePlugin_UninstallPackage = 'claudeCodePlugin:uninstall-package',
   ClaudeCodePlugin_ListInstalled = 'claudeCodePlugin:list-installed',
-  ClaudeCodePlugin_InvalidateCache = 'claudeCodePlugin:invalidate-cache',
-  ClaudeCodePlugin_ReadContent = 'claudeCodePlugin:read-content',
   ClaudeCodePlugin_WriteContent = 'claudeCodePlugin:write-content',
+  ClaudeCodePlugin_InstallFromZip = 'claudeCodePlugin:install-from-zip',
+  ClaudeCodePlugin_InstallFromDirectory = 'claudeCodePlugin:install-from-directory',
 
-  // WebSocket
-  WebSocket_Start = 'webSocket:start',
-  WebSocket_Stop = 'webSocket:stop',
-  WebSocket_Status = 'webSocket:status',
-  WebSocket_SendFile = 'webSocket:send-file',
-  WebSocket_GetAllCandidates = 'webSocket:get-all-candidates'
+  // Local Transfer
+  LocalTransfer_ListServices = 'local-transfer:list',
+  LocalTransfer_StartScan = 'local-transfer:start-scan',
+  LocalTransfer_StopScan = 'local-transfer:stop-scan',
+  LocalTransfer_ServicesUpdated = 'local-transfer:services-updated',
+  LocalTransfer_Connect = 'local-transfer:connect',
+  LocalTransfer_Disconnect = 'local-transfer:disconnect',
+  LocalTransfer_ClientEvent = 'local-transfer:client-event',
+  LocalTransfer_SendFile = 'local-transfer:send-file',
+  LocalTransfer_CancelTransfer = 'local-transfer:cancel-transfer',
+
+  // OpenClaw
+  OpenClaw_CheckInstalled = 'openclaw:check-installed',
+  OpenClaw_CheckNpmAvailable = 'openclaw:check-npm-available',
+  OpenClaw_GetNodeDownloadUrl = 'openclaw:get-node-download-url',
+  OpenClaw_Install = 'openclaw:install',
+  OpenClaw_Uninstall = 'openclaw:uninstall',
+  OpenClaw_InstallProgress = 'openclaw:install-progress',
+  OpenClaw_StartGateway = 'openclaw:start-gateway',
+  OpenClaw_StopGateway = 'openclaw:stop-gateway',
+  OpenClaw_RestartGateway = 'openclaw:restart-gateway',
+  OpenClaw_GetStatus = 'openclaw:get-status',
+  OpenClaw_CheckHealth = 'openclaw:check-health',
+  OpenClaw_GetDashboardUrl = 'openclaw:get-dashboard-url',
+  OpenClaw_SyncConfig = 'openclaw:sync-config',
+  OpenClaw_GetChannels = 'openclaw:get-channels'
 }

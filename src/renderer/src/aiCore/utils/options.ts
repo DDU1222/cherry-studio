@@ -3,14 +3,16 @@ import { type AnthropicProviderOptions } from '@ai-sdk/anthropic'
 import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google'
 import type { OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import type { XaiProviderOptions } from '@ai-sdk/xai'
-import { baseProviderIdSchema, customProviderIdSchema } from '@cherrystudio/ai-core/provider'
+import { baseProviderIdSchema, customProviderIdSchema, hasProviderConfig } from '@cherrystudio/ai-core/provider'
 import { loggerService } from '@logger'
 import {
   getModelSupportedVerbosity,
   isAnthropicModel,
   isGeminiModel,
   isGrokModel,
+  isInterleavedThinkingModel,
   isOpenAIModel,
+  isOpenAIOpenWeightModel,
   isQwenMTModel,
   isSupportFlexServiceTierModel,
   isSupportVerbosityModel
@@ -244,7 +246,7 @@ export function buildProviderOptions(
           providerSpecificOptions = buildOpenAIProviderOptions(assistant, model, capabilities, serviceTier)
           break
         case SystemProviderIds.ollama:
-          providerSpecificOptions = buildOllamaProviderOptions(assistant, capabilities)
+          providerSpecificOptions = buildOllamaProviderOptions(assistant, model, capabilities)
           break
         case SystemProviderIds.gateway:
           providerSpecificOptions = buildAIGatewayOptions(assistant, model, capabilities, serviceTier, textVerbosity)
@@ -395,10 +397,12 @@ function buildOpenAIProviderOptions(
     }
   }
 
+  // TODO: 支持配置是否在服务端持久化
   providerOptions = {
     ...providerOptions,
     serviceTier,
-    textVerbosity
+    textVerbosity,
+    store: false
   }
 
   return {
@@ -564,6 +568,7 @@ function buildBedrockProviderOptions(
 
 function buildOllamaProviderOptions(
   assistant: Assistant,
+  model: Model,
   capabilities: {
     enableReasoning: boolean
     enableWebSearch: boolean
@@ -574,7 +579,14 @@ function buildOllamaProviderOptions(
   const providerOptions: OllamaCompletionProviderOptions = {}
   const reasoningEffort = assistant.settings?.reasoning_effort
   if (enableReasoning) {
-    providerOptions.think = !['none', undefined].includes(reasoningEffort)
+    if (isOpenAIOpenWeightModel(model)) {
+      // For gpt-oss models, Ollama accepts: 'low' | 'medium' | 'high'
+      if (reasoningEffort === 'low' || reasoningEffort === 'medium' || reasoningEffort === 'high') {
+        providerOptions.think = reasoningEffort
+      }
+    } else {
+      providerOptions.think = !['none', undefined].includes(reasoningEffort)
+    }
   }
   return {
     ollama: providerOptions
@@ -594,13 +606,26 @@ function buildGenericProviderOptions(
     enableGenerateImage: boolean
   }
 ): Record<string, any> {
-  const { enableWebSearch } = capabilities
+  const { enableWebSearch, enableReasoning } = capabilities
   let providerOptions: Record<string, any> = {}
 
   const reasoningParams = getReasoningEffort(assistant, model)
   providerOptions = {
     ...providerOptions,
     ...reasoningParams
+  }
+  if (enableReasoning) {
+    if (isInterleavedThinkingModel(model)) {
+      // sendReasoning is a patch specific to @ai-sdk/openai-compatible
+      // Only apply when provider will actually use openai-compatible SDK
+      // (i.e., no dedicated SDK registered OR explicitly openai-compatible)
+      if (!hasProviderConfig(providerId) || providerId === 'openai-compatible') {
+        providerOptions = {
+          ...providerOptions,
+          sendReasoning: true
+        }
+      }
+    }
   }
 
   if (enableWebSearch) {
@@ -626,6 +651,10 @@ function buildGenericProviderOptions(
     } else {
       throw new Error(t('translate.error.chat_qwen_mt'))
     }
+  }
+
+  if (isOpenAIModel(model)) {
+    providerOptions.strictJsonSchema = false
   }
 
   return {

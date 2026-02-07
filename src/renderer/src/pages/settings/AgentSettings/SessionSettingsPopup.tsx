@@ -45,28 +45,26 @@ const SessionSettingPopupContainer: React.FC<SessionSettingPopupParams> = ({ tab
     resolve()
   }
 
-  const items = (
-    [
-      {
-        key: 'essential',
-        label: t('agent.settings.essential')
-      },
-      {
-        key: 'prompt',
-        label: t('agent.settings.prompt')
-      },
-      {
-        key: 'tooling',
-        label: t('agent.settings.tooling.tab', 'Tooling & permissions')
-      },
-      {
-        key: 'advanced',
-        label: t('agent.settings.advance.title', 'Advanced Settings')
-      }
-    ] as const satisfies { key: AgentSettingPopupTab; label: string }[]
-  ).filter(Boolean)
+  const items = [
+    {
+      key: 'essential',
+      label: t('agent.settings.essential')
+    },
+    {
+      key: 'prompt',
+      label: t('agent.settings.prompt')
+    },
+    {
+      key: 'tooling',
+      label: t('agent.settings.tooling.tab', 'Tooling & permissions')
+    },
+    {
+      key: 'advanced',
+      label: t('agent.settings.advance.title', 'Advanced Settings')
+    }
+  ] as const satisfies { key: AgentSettingPopupTab; label: string }[]
 
-  const ModalContent = () => {
+  const renderModalContent = () => {
     if (isLoading) {
       // TODO: use skeleton for better ux
       return (
@@ -130,9 +128,9 @@ const SessionSettingPopupContainer: React.FC<SessionSettingPopupParams> = ({ tab
           flex: 1
         }
       }}
-      width="min(800px, 70vw)"
+      width="min(900px, 70vw)"
       centered>
-      <ModalContent />
+      {renderModalContent()}
     </StyledModal>
   )
 }

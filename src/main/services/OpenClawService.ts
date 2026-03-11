@@ -137,8 +137,15 @@ function getModelBaseName(modelId: string): string {
 /**
  * Check if a model is an Anthropic model by its name.
  */
-function isAnthropicModel(model: Model): boolean {
-  return getModelBaseName(model.id).startsWith('claude')
+function isAnthropicModel(modelId: string): boolean {
+  return getModelBaseName(modelId).startsWith('claude')
+}
+
+/**
+ * Check if a model is a Gemini model by its name.
+ */
+function isGeminiModel(modelId: string): boolean {
+  return getModelBaseName(modelId).startsWith('gemini')
 }
 
 /**
@@ -147,14 +154,15 @@ function isAnthropicModel(model: Model): boolean {
  * Priority order:
  * 1. Model's explicit endpoint_type (model knows best — set by new-api, etc.)
  * 2. Provider id (provider-specific protocol overrides)
- * 3. Provider type (anthropic, vertex-anthropic, ollama, bedrock, openai-response, etc.)
- * 4. Model name + provider config inference (only when provider has a dedicated Anthropic endpoint)
+ * 3. Provider type (anthropic, vertex-anthropic, gemini, ollama, bedrock, openai-response)
+ * 4. Model name inference for multi-protocol aggregators
+ *    (only when provider has a dedicated host for that protocol)
  * 5. Default to openai-completions
  *
  * @internal Exported for testing only.
  */
 export function determineApiType(
-  provider: { id: string; type: string; anthropicApiHost?: string },
+  provider: { id: string; type: string; anthropicApiHost?: string; geminiApiHost?: string },
   model: { id: string; endpoint_type?: string }
 ): string {
   // 1. Model's explicit endpoint_type (highest priority — model declares its own protocol)
@@ -167,17 +175,19 @@ export function determineApiType(
     return PROVIDER_ID_TO_OPENCLAW_API[provider.id]
   }
 
-  // 3. Provider type specific protocol (anthropic, vertex-anthropic)
+  // 3. Provider type specific protocol (anthropic, vertex-anthropic, gemini, etc.)
   if (PROVIDER_TYPE_TO_OPENCLAW_API[provider.type as ProviderType]) {
     return PROVIDER_TYPE_TO_OPENCLAW_API[provider.type as ProviderType]!
   }
 
-  // 4. Infer Anthropic protocol from model name, but ONLY when the provider
-  //    has a dedicated Anthropic endpoint (anthropicApiHost). Providers like
-  //    openrouter that proxy everything through OpenAI-compatible API should
-  //    NOT be affected by model name — they always use openai-completions.
-  if (provider.anthropicApiHost && isAnthropicModel(model as Model)) {
+  // 4. Infer protocol from model name for multi-protocol aggregators.
+  //    Each vendor-specific host (anthropicApiHost, geminiApiHost) independently
+  //    signals that the provider can route to that vendor's native API.
+  if (provider.anthropicApiHost && isAnthropicModel(model.id)) {
     return OPENCLAW_API_TYPES.ANTHROPIC
+  }
+  if (provider.geminiApiHost && isGeminiModel(model.id)) {
+    return OPENCLAW_API_TYPES.GOOGLE
   }
 
   // 5. Default to OpenAI-compatible

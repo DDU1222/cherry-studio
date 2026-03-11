@@ -107,6 +107,7 @@ export const SYSTEM_PROVIDERS_CONFIG: Record<SystemProviderId, SystemProvider> =
     apiKey: '',
     apiHost: 'https://aihubmix.com',
     anthropicApiHost: 'https://aihubmix.com',
+    geminiApiHost: 'https://aihubmix.com/gemini',
     models: SYSTEM_MODELS.aihubmix,
     isSystem: true,
     enabled: false

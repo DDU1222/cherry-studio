@@ -37,11 +37,14 @@ import { determineApiType } from '../OpenClawService'
 /**
  * Minimal provider/model stubs — only fields used by determineApiType.
  */
-function makeProvider(overrides: { id?: string; type?: string; anthropicApiHost?: string } = {}) {
+function makeProvider(
+  overrides: { id?: string; type?: string; anthropicApiHost?: string; geminiApiHost?: string } = {}
+) {
   return {
     id: overrides.id ?? 'test-provider',
     type: overrides.type ?? 'openai',
-    ...(overrides.anthropicApiHost !== undefined && { anthropicApiHost: overrides.anthropicApiHost })
+    ...(overrides.anthropicApiHost !== undefined && { anthropicApiHost: overrides.anthropicApiHost }),
+    ...(overrides.geminiApiHost !== undefined && { geminiApiHost: overrides.geminiApiHost })
   }
 }
 
@@ -155,9 +158,9 @@ describe('determineApiType', () => {
     })
   })
 
-  // ─── Priority 4: model name + anthropicApiHost inference ─────────
+  // ─── Priority 4: model name + vendor host inference ────────────
 
-  describe('Priority 4 — model name inference (requires anthropicApiHost)', () => {
+  describe('Priority 4 — model name inference (requires vendor-specific host)', () => {
     it('claude model on provider WITH anthropicApiHost → anthropic-messages', () => {
       const provider = makeProvider({ id: 'aihubmix', type: 'openai', anthropicApiHost: 'https://aihubmix.com' })
       const model = makeModel({ id: 'claude-sonnet-4' })
@@ -176,20 +179,37 @@ describe('determineApiType', () => {
       expect(determineApiType(provider, model)).toBe('openai-completions')
     })
 
-    it('gemini model on provider WITH anthropicApiHost → openai-completions (no gemini inference)', () => {
-      const provider = makeProvider({ id: 'aihubmix', type: 'openai', anthropicApiHost: 'https://aihubmix.com' })
+    it('gemini model on provider WITH geminiApiHost → google-generative-ai', () => {
+      const provider = makeProvider({ id: 'aihubmix', type: 'openai', geminiApiHost: 'https://aihubmix.com' })
       const model = makeModel({ id: 'gemini-2.5-pro' })
-      expect(determineApiType(provider, model)).toBe('openai-completions')
+      expect(determineApiType(provider, model)).toBe('google-generative-ai')
     })
 
-    it('gemini model on openrouter → openai-completions', () => {
+    it('gemini model with path prefix on provider WITH geminiApiHost → google-generative-ai', () => {
+      const provider = makeProvider({ id: 'aihubmix', type: 'openai', geminiApiHost: 'https://aihubmix.com' })
+      const model = makeModel({ id: 'cherry-aihubmix/gemini-2.5-flash-preview' })
+      expect(determineApiType(provider, model)).toBe('google-generative-ai')
+    })
+
+    it('gemini model on provider WITHOUT geminiApiHost → openai-completions', () => {
       const provider = makeProvider({ id: 'openrouter', type: 'openai' })
       const model = makeModel({ id: 'google/gemini-2.5-flash-preview' })
       expect(determineApiType(provider, model)).toBe('openai-completions')
     })
 
-    it('non-claude model on provider WITH anthropicApiHost → openai-completions', () => {
-      const provider = makeProvider({ id: 'aihubmix', type: 'openai', anthropicApiHost: 'https://aihubmix.com' })
+    it('gemini model on provider WITH anthropicApiHost but WITHOUT geminiApiHost → openai-completions', () => {
+      const provider = makeProvider({ id: 'dmxapi', type: 'openai', anthropicApiHost: 'https://www.dmxapi.cn' })
+      const model = makeModel({ id: 'gemini-2.5-pro' })
+      expect(determineApiType(provider, model)).toBe('openai-completions')
+    })
+
+    it('non-claude non-gemini model on aggregator → openai-completions', () => {
+      const provider = makeProvider({
+        id: 'aihubmix',
+        type: 'openai',
+        anthropicApiHost: 'https://aihubmix.com',
+        geminiApiHost: 'https://aihubmix.com'
+      })
       const model = makeModel({ id: 'gpt-5.4' })
       expect(determineApiType(provider, model)).toBe('openai-completions')
     })

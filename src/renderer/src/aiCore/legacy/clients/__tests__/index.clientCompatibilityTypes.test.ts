@@ -175,7 +175,7 @@ describe('Client Compatibility Types', () => {
     anthropicProvider = createTestProvider('anthropic', 'anthropic')
     geminiProvider = createTestProvider('gemini', 'gemini')
     azureProvider = createTestProvider('azure-openai', 'azure-openai')
-    aihubmixProvider = createTestProvider('aihubmix', 'openai')
+    aihubmixProvider = { ...createTestProvider('aihubmix', 'openai'), geminiApiHost: 'https://aihubmix.com' }
     newApiProvider = createTestProvider('new-api', 'openai')
     vertexProvider = createTestProvider('vertex', 'vertexai')
   })

@@ -1022,12 +1022,13 @@ class OpenClawService {
    */
   private getBaseUrlForApiType(provider: Provider, apiType: string): string {
     if (apiType === OPENCLAW_API_TYPES.ANTHROPIC) {
-      // For Anthropic API type, prefer anthropicApiHost if available
       const host = provider.anthropicApiHost || provider.apiHost
       return this.formatAnthropicUrl(host)
     }
-    // TODO: Add dedicated URL formatters for google, ollama, bedrock, copilot protocols
-    // Currently these fall through to formatOpenAIUrl which may need adjustment
+    if (apiType === OPENCLAW_API_TYPES.GOOGLE && provider.geminiApiHost) {
+      return withoutTrailingSlash(provider.geminiApiHost)
+    }
+    // TODO: Add dedicated URL formatters for ollama, bedrock, copilot protocols
     return this.formatOpenAIUrl(provider)
   }
 

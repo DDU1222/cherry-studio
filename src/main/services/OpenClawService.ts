@@ -141,26 +141,19 @@ function isAnthropicModel(model: Model): boolean {
 }
 
 /**
- * Check if a model is a Gemini model by its name.
- */
-function isGeminiModel(model: Model): boolean {
-  return getModelBaseName(model.id).includes('gemini')
-}
-
-/**
  * Determine the appropriate OpenClaw API protocol for the given provider and model.
  *
  * Priority order:
  * 1. Model's explicit endpoint_type (model knows best — set by new-api, etc.)
  * 2. Provider id (provider-specific protocol overrides)
  * 3. Provider type (anthropic, vertex-anthropic, ollama, bedrock, openai-response, etc.)
- * 4. Model name inference (fallback for mixed providers without endpoint_type)
+ * 4. Model name + provider config inference (only when provider has a dedicated Anthropic endpoint)
  * 5. Default to openai-completions
  *
  * @internal Exported for testing only.
  */
 export function determineApiType(
-  provider: { id: string; type: string },
+  provider: { id: string; type: string; anthropicApiHost?: string },
   model: { id: string; endpoint_type?: string }
 ): string {
   // 1. Model's explicit endpoint_type (highest priority — model declares its own protocol)
@@ -178,12 +171,12 @@ export function determineApiType(
     return PROVIDER_TYPE_TO_OPENCLAW_API[provider.type as ProviderType]!
   }
 
-  // 4. Infer from model name (fallback for mixed providers like aihubmix, dmxapi, openrouter)
-  if (isAnthropicModel(model as Model)) {
+  // 4. Infer Anthropic protocol from model name, but ONLY when the provider
+  //    has a dedicated Anthropic endpoint (anthropicApiHost). Providers like
+  //    openrouter that proxy everything through OpenAI-compatible API should
+  //    NOT be affected by model name — they always use openai-completions.
+  if (provider.anthropicApiHost && isAnthropicModel(model as Model)) {
     return OPENCLAW_API_TYPES.ANTHROPIC
-  }
-  if (isGeminiModel(model as Model)) {
-    return OPENCLAW_API_TYPES.GOOGLE
   }
 
   // 5. Default to OpenAI-compatible

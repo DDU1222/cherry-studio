@@ -111,6 +111,7 @@ const ENDPOINT_TO_OPENCLAW_API: Record<string, string> = {
 const PROVIDER_TYPE_TO_OPENCLAW_API: Partial<Record<ProviderType, string>> = {
   anthropic: OPENCLAW_API_TYPES.ANTHROPIC,
   'vertex-anthropic': OPENCLAW_API_TYPES.ANTHROPIC,
+  gemini: OPENCLAW_API_TYPES.GOOGLE,
   ollama: OPENCLAW_API_TYPES.OLLAMA,
   'aws-bedrock': OPENCLAW_API_TYPES.BEDROCK,
   'openai-response': OPENCLAW_API_TYPES.OPENAI_RESPONSE

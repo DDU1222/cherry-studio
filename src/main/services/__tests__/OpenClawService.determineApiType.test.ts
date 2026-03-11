@@ -130,6 +130,12 @@ describe('determineApiType', () => {
       expect(determineApiType(provider, model)).toBe('ollama')
     })
 
+    it('gemini provider → google-generative-ai', () => {
+      const provider = makeProvider({ type: 'gemini' })
+      const model = makeModel({ id: 'gemini-2.5-pro' })
+      expect(determineApiType(provider, model)).toBe('google-generative-ai')
+    })
+
     it('aws-bedrock provider → bedrock-converse-stream', () => {
       const provider = makeProvider({ type: 'aws-bedrock' })
       const model = makeModel({ id: 'anthropic.claude-sonnet-4-v2' })

@@ -34,7 +34,7 @@ export class AihubmixAPIClient extends MixedBaseAPIClient {
     const claudeClient = new AnthropicAPIClient(providerExtraHeaders)
     const geminiClient = new GeminiAPIClient({
       ...providerExtraHeaders,
-      apiHost: provider.geminiApiHost || 'https://aihubmix.com/gemini'
+      apiHost: 'https://aihubmix.com/gemini'
     })
     const openaiClient = new OpenAIResponseAPIClient(providerExtraHeaders)
     const defaultClient = new OpenAIAPIClient(providerExtraHeaders)

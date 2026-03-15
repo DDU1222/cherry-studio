@@ -1,4 +1,5 @@
 import { loggerService } from '@logger'
+import AnthropicProviderListPopover from '@renderer/components/AnthropicProviderListPopover'
 import { ErrorBoundary } from '@renderer/components/ErrorBoundary'
 import { HelpTooltip } from '@renderer/components/TooltipIcons'
 import { TopView } from '@renderer/components/TopView'
@@ -6,7 +7,7 @@ import { permissionModeCards } from '@renderer/config/agent'
 import { isWin } from '@renderer/config/constant'
 import { useAgents } from '@renderer/hooks/agents/useAgents'
 import { useUpdateAgent } from '@renderer/hooks/agents/useUpdateAgent'
-import SelectAgentBaseModelButton from '@renderer/pages/home/components/SelectAgentBaseModelButton'
+import SelectAgentBaseModelButton from '@renderer/pages/agents/components/SelectAgentBaseModelButton'
 import type {
   AddAgentForm,
   AgentEntity,
@@ -18,6 +19,7 @@ import type {
 } from '@renderer/types'
 import { AgentConfigurationSchema, isAgentType } from '@renderer/types'
 import { parseKeyValueString, serializeKeyValueString } from '@renderer/utils/env'
+import { getAnthropicSupportedProviders } from '@renderer/utils/provider'
 import type { GitBashPathInfo } from '@shared/config/constant'
 import { Button, Input, Modal, Select } from 'antd'
 import type { ChangeEvent, FormEvent } from 'react'
@@ -367,7 +369,14 @@ const PopupContainer: React.FC<Props> = ({ agent, afterSubmit, resolve }) => {
                 <Label>
                   {t('common.model')} <RequiredMark>*</RequiredMark>
                 </Label>
-                <HelpTooltip title={t('agent.add.model.tooltip')} />
+                <AnthropicProviderListPopover
+                  useWindowNavigate
+                  filterProviders={getAnthropicSupportedProviders}
+                  onProviderClick={() => {
+                    setOpen(false)
+                    resolve(undefined)
+                  }}
+                />
               </div>
               <SelectAgentBaseModelButton
                 agentBase={tempAgentBase}

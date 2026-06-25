@@ -33,11 +33,13 @@ Thumbs.db
 
 # Project
 node_modules
+.pnpm-store/
 dist
 out
 mcp_server
 stats.html
 .eslintcache
+# Downloaded native binaries (mise, etc.)
 resources/binaries/
 
 # ENV
@@ -58,6 +60,7 @@ local
 .trae/*
 .claude-code-router/*
 .codebuddy/*
+.antigravitycli/*
 .zed/*
 !.zed/settings.json.example
 CLAUDE.local.md
@@ -68,8 +71,14 @@ coverage
 vitest.config.*.timestamp-*
 .context/vitest-temp/
 
+# TanStack Router (generated code-splitting cache)
+.tanstack/
+
 # TypeScript incremental build
 .tsbuildinfo
+
+# Icon generation cache
+.icons-hash.json
 
 # playwright
 playwright-report
@@ -78,3 +87,4 @@ test-results
 YOUR_MEMORY_FILE_PATH
 
 .sessions/
+.devtools

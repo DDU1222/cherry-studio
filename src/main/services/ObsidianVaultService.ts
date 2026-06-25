@@ -1,5 +1,6 @@
+import { application } from '@application'
 import { loggerService } from '@logger'
-import { app } from 'electron'
+import { isMac, isWin } from '@main/core/platform'
 import fs from 'fs'
 import path from 'path'
 
@@ -16,25 +17,27 @@ interface FileInfo {
 }
 
 class ObsidianVaultService {
-  private obsidianConfigPath: string
+  private obsidianConfigPath?: string
 
-  constructor() {
-    // 根据操作系统获取Obsidian配置文件路径
-    if (process.platform === 'win32') {
-      this.obsidianConfigPath = path.join(app.getPath('appData'), 'obsidian', 'obsidian.json')
-    } else if (process.platform === 'darwin') {
-      this.obsidianConfigPath = path.join(
-        app.getPath('home'),
-        'Library',
-        'Application Support',
-        'obsidian',
-        'obsidian.json'
-      )
-    } else {
-      // Linux
-      this.obsidianConfigPath = this.resolveLinuxObsidianConfigPath()
-      logger.debug(`Resolved Obsidian config path (linux): ${this.obsidianConfigPath}`)
+  private getObsidianConfigPath(): string {
+    if (this.obsidianConfigPath === undefined) {
+      if (isWin) {
+        this.obsidianConfigPath = path.join(application.getPath('sys.appdata'), 'obsidian', 'obsidian.json')
+      } else if (isMac) {
+        this.obsidianConfigPath = path.join(
+          application.getPath('sys.home'),
+          'Library',
+          'Application Support',
+          'obsidian',
+          'obsidian.json'
+        )
+      } else {
+        // Linux
+        this.obsidianConfigPath = this.resolveLinuxObsidianConfigPath()
+        logger.debug(`Resolved Obsidian config path (linux): ${this.obsidianConfigPath}`)
+      }
     }
+    return this.obsidianConfigPath
   }
 
   /**
@@ -42,11 +45,12 @@ class ObsidianVaultService {
    */
   getVaults(): VaultInfo[] {
     try {
-      if (!fs.existsSync(this.obsidianConfigPath)) {
+      const obsidianConfigPath = this.getObsidianConfigPath()
+      if (!fs.existsSync(obsidianConfigPath)) {
         return []
       }
 
-      const configContent = fs.readFileSync(this.obsidianConfigPath, 'utf8')
+      const configContent = fs.readFileSync(obsidianConfigPath, 'utf8')
       const config = JSON.parse(configContent)
 
       if (!config.vaults) {
@@ -171,7 +175,7 @@ class ObsidianVaultService {
    * 优先返回第一个存在的路径；若均不存在，则返回 XDG 默认路径。
    */
   private resolveLinuxObsidianConfigPath(): string {
-    const home = app.getPath('home')
+    const home = application.getPath('sys.home')
     const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(home, '.config')
 
     // 常见目录名与文件名大小写差异做兼容

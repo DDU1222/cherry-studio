@@ -3,6 +3,13 @@ import { defineConfig } from 'vitest/config'
 
 import electronViteConfig from './electron.vite.config'
 
+// Pin the test timezone to UTC so date-dependent tests are deterministic on every
+// machine. CI runners default to UTC; without this, tests that bucket UTC timestamps
+// by local day (e.g. Topics "Today/Yesterday") pass in CI but fail on dev machines in
+// a non-UTC zone. Set here (main process, before workers spawn) so every thread worker
+// inherits TZ=UTC at creation and V8 parses Date in UTC from the start.
+process.env.TZ = 'UTC'
+
 const mainConfig = (electronViteConfig as any).main
 const rendererConfig = (electronViteConfig as any).renderer
 
@@ -20,7 +27,11 @@ export default defineConfig({
           name: 'main',
           environment: 'node',
           setupFiles: ['tests/main.setup.ts'],
-          include: ['src/main/**/*.{test,spec}.{ts,tsx}', 'src/main/**/__tests__/**/*.{test,spec}.{ts,tsx}'],
+          include: [
+            'src/main/**/*.{test,spec}.{ts,tsx}',
+            'src/main/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+            'tests/helpers/**/__tests__/**/*.{test,spec}.{ts,tsx}'
+          ],
           benchmark: {
             include: ['src/main/**/*.bench.{ts,tsx}', 'src/main/**/__tests__/**/*.bench.{ts,tsx}']
           }
@@ -75,19 +86,55 @@ export default defineConfig({
         extends: true,
         resolve: {
           alias: {
-            '@shared': resolve('packages/shared')
+            '@shared': resolve('src/shared'),
+            '@cherrystudio/provider-registry/node': resolve('packages/provider-registry/src/registry-loader'),
+            '@cherrystudio/provider-registry': resolve('packages/provider-registry/src')
           }
         },
         test: {
           name: 'shared',
           environment: 'node',
-          include: [
-            'packages/shared/**/*.{test,spec}.{ts,tsx}',
-            'packages/shared/**/__tests__/**/*.{test,spec}.{ts,tsx}'
-          ],
+          include: ['src/shared/**/*.{test,spec}.{ts,tsx}', 'src/shared/**/__tests__/**/*.{test,spec}.{ts,tsx}'],
           benchmark: {
-            include: ['packages/shared/**/*.bench.{ts,tsx}', 'packages/shared/**/__tests__/**/*.bench.{ts,tsx}']
+            include: ['src/shared/**/*.bench.{ts,tsx}', 'src/shared/**/__tests__/**/*.bench.{ts,tsx}']
           }
+        }
+      },
+      // provider-registry 包单元测试配置
+      {
+        extends: true,
+        resolve: {
+          alias: {
+            '@shared': resolve('src/shared'),
+            '@cherrystudio/provider-registry/node': resolve('packages/provider-registry/src/registry-loader'),
+            '@cherrystudio/provider-registry': resolve('packages/provider-registry/src')
+          }
+        },
+        test: {
+          name: 'provider-registry',
+          environment: 'node',
+          include: [
+            'packages/provider-registry/**/*.{test,spec}.{ts,tsx}',
+            'packages/provider-registry/**/__tests__/**/*.{test,spec}.{ts,tsx}'
+          ]
+        }
+      },
+      // packages/ui 单元测试配置
+      {
+        extends: true,
+        resolve: {
+          alias: {
+            '@cherrystudio/ui': resolve(__dirname, 'packages/ui/src')
+          }
+        },
+        test: {
+          name: 'ui',
+          environment: 'node',
+          include: [
+            'packages/ui/scripts/**/*.{test,spec}.{ts,tsx}',
+            'packages/ui/src/**/*.{test,spec}.{ts,tsx}',
+            'packages/ui/src/**/__tests__/**/*.{test,spec}.{ts,tsx}'
+          ]
         }
       }
     ],

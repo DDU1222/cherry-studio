@@ -2,12 +2,24 @@ import { execFileSync, spawn } from 'child_process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Force Windows code path regardless of the host platform.
-vi.mock('@main/constant', () => ({
+vi.mock('@main/core/platform', () => ({
   isWin: true,
   isMac: false,
   isLinux: false,
   isDev: false,
   isPortable: false
+}))
+
+vi.mock('@application', () => ({
+  application: {
+    getPath: (key: string) => {
+      const base = 'C:\\Users\\test\\.cherrystudio'
+      if (key === 'cherry.bin') return `${base}\\bin`
+      if (key === 'feature.binary.data') return `${base}\\binary-manager`
+      if (key === 'sys.home') return 'C:\\Users\\test'
+      return `/mock/${key}`
+    }
+  }
 }))
 
 vi.mock('child_process')
@@ -78,10 +90,10 @@ describe('shell-env – Windows registry PATH', () => {
     const env = await refreshShellEnv()
 
     // System PATH comes first, user PATH second.
-    const pathValue = env.Path
+    const pathValue = [env.Path, env.PATH].filter(Boolean).join(';')
     expect(pathValue).toContain('C:\\System')
     expect(pathValue).toContain('C:\\User')
-    expect(pathValue.indexOf('C:\\System')).toBeLessThan(pathValue.indexOf('C:\\User'))
+    expect(pathValue).toContain('C:\\System;C:\\User')
   })
 
   it('should use only user PATH when system PATH is unavailable', async () => {
@@ -159,9 +171,9 @@ describe('shell-env – Windows registry PATH', () => {
     expect(env.Path).toContain('C:\\PlainPath')
   })
 
-  // -- Cherry Studio bin appended -------------------------------------------
+  // -- Cherry Studio tool directories appended ------------------------------
 
-  it('should append Cherry Studio bin directory to PATH', async () => {
+  it('should append Cherry Studio tool directories to PATH', async () => {
     vi.mocked(execFileSync).mockImplementation((_cmd, args) => {
       const keyPath = (args as string[])[1]
       if (keyPath === HKLM_KEY) return regOutput(keyPath, 'C:\\Windows')
@@ -171,6 +183,9 @@ describe('shell-env – Windows registry PATH', () => {
     const env = await refreshShellEnv()
 
     expect(env.Path).toContain('.cherrystudio')
+    expect(env.Path).toContain('binary-manager')
+    expect(env.Path).toContain('shims')
+    expect(env.Path).toContain('bin')
   })
 
   // -- does not spawn cmd.exe -----------------------------------------------

@@ -1,19 +1,24 @@
 import { exec } from 'node:child_process'
-import { homedir } from 'node:os'
 import { promisify } from 'node:util'
 
+import { application } from '@application'
 import { loggerService } from '@logger'
-import { isWin } from '@main/constant'
-import { getCpuName } from '@main/utils/system'
-import { HOME_CHERRY_DIR } from '@shared/config/constant'
+import {
+  BaseService,
+  Conditional,
+  Injectable,
+  onCpuVendor,
+  onPlatform,
+  Phase,
+  ServicePhase
+} from '@main/core/lifecycle'
+import { IpcChannel } from '@shared/IpcChannel'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 
 const logger = loggerService.withContext('OvmsManager')
 
 const execAsync = promisify(exec)
-
-export const isOvmsSupported = isWin && getCpuName().toLowerCase().includes('intel')
 
 interface OvmsProcess {
   pid: number
@@ -30,13 +35,32 @@ interface OvmsConfig {
   mediapipe_config_list: ModelConfig[]
 }
 
-class OvmsManager {
+@Injectable('OvmsManager')
+@ServicePhase(Phase.WhenReady)
+@Conditional(onPlatform('win32'), onCpuVendor('intel'))
+export class OvmsManager extends BaseService {
   private ovms: OvmsProcess | null = null
 
-  constructor() {
-    if (!isOvmsSupported) {
-      throw new Error('OVMS Manager is only supported on Windows platform with Intel CPU.')
-    }
+  protected async onInit() {
+    this.registerIpcHandlers()
+  }
+
+  private registerIpcHandlers() {
+    this.ipcHandle(
+      IpcChannel.Ovms_AddModel,
+      (_, modelName: string, modelId: string, modelSource: string, task: string) =>
+        this.addModel(modelName, modelId, modelSource, task)
+    )
+    this.ipcHandle(IpcChannel.Ovms_StopAddModel, () => this.stopAddModel())
+    this.ipcHandle(IpcChannel.Ovms_GetModels, () => this.getModels())
+    this.ipcHandle(IpcChannel.Ovms_IsRunning, () => this.initializeOvms())
+    this.ipcHandle(IpcChannel.Ovms_GetStatus, () => this.getOvmsStatus())
+    this.ipcHandle(IpcChannel.Ovms_RunOVMS, () => this.runOvms())
+    this.ipcHandle(IpcChannel.Ovms_StopOVMS, () => this.stopOvms())
+  }
+
+  protected async onStop() {
+    await this.stopOvms()
   }
 
   /**
@@ -133,8 +157,7 @@ class OvmsManager {
    * @returns Promise<{ success: boolean; message?: string }>
    */
   public async runOvms(): Promise<{ success: boolean; message?: string }> {
-    const homeDir = homedir()
-    const ovmsDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms')
+    const ovmsDir = application.getPath('feature.ovms.ovms')
     const configPath = path.join(ovmsDir, 'models', 'config.json')
     const runBatPath = path.join(ovmsDir, 'run.bat')
 
@@ -183,8 +206,7 @@ class OvmsManager {
    * @returns 'not-installed' | 'not-running' | 'running'
    */
   public async getOvmsStatus(): Promise<'not-installed' | 'not-running' | 'running'> {
-    const homeDir = homedir()
-    const ovmsPath = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms', 'ovms.exe')
+    const ovmsPath = application.getPath('feature.ovms.ovms', 'ovms.exe')
 
     try {
       // Check if OVMS executable exists
@@ -194,8 +216,6 @@ class OvmsManager {
       }
 
       // Check if OVMS process is running
-      //const psCommand = `Get-Process -Name "ovms" -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq "${ovmsPath.replace(/\\/g, '\\\\')}" } | Select-Object Id | ConvertTo-Json`;
-      //const { stdout } = await execAsync(`powershell -Command "${psCommand}"`);
       const psCommand = `Get-Process -Name "ovms" -ErrorAction SilentlyContinue | Select-Object Id, Path | ConvertTo-Json`
       const { stdout } = await execAsync(`powershell -Command "${psCommand}"`)
 
@@ -261,8 +281,7 @@ class OvmsManager {
       return false
     }
 
-    const homeDir = homedir()
-    const configPath = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms', 'models', 'config.json')
+    const configPath = path.join(application.getPath('feature.ovms.ovms'), 'models', 'config.json')
     try {
       if (!(await fs.pathExists(configPath))) {
         logger.warn(`Config file does not exist: ${configPath}`)
@@ -292,8 +311,7 @@ class OvmsManager {
   }
 
   private async applyModelPath(modelDirPath: string): Promise<boolean> {
-    const homeDir = homedir()
-    const patchDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'patch')
+    const patchDir = application.getPath('feature.ovms.patch')
     if (!(await fs.pathExists(patchDir))) {
       return true
     }
@@ -343,8 +361,7 @@ class OvmsManager {
   ): Promise<{ success: boolean; message?: string }> {
     logger.info(`Adding model: ${modelName} with ID: ${modelId}, Source: ${modelSource}, Task: ${task}`)
 
-    const homeDir = homedir()
-    const ovdndDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms')
+    const ovdndDir = application.getPath('feature.ovms.ovms')
     const pathModel = path.join(ovdndDir, 'models', modelId)
 
     try {
@@ -456,8 +473,7 @@ class OvmsManager {
    * @param modelId ID of the model to check
    */
   public async checkModelExists(modelId: string): Promise<boolean> {
-    const homeDir = homedir()
-    const ovmsDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms')
+    const ovmsDir = application.getPath('feature.ovms.ovms')
     const configPath = path.join(ovmsDir, 'models', 'config.json')
 
     try {
@@ -483,8 +499,7 @@ class OvmsManager {
    * Update the model configuration file
    */
   public async updateModelConfig(modelName: string, modelId: string): Promise<boolean> {
-    const homeDir = homedir()
-    const ovmsDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms')
+    const ovmsDir = application.getPath('feature.ovms.ovms')
     const configPath = path.join(ovmsDir, 'models', 'config.json')
 
     try {
@@ -536,8 +551,7 @@ class OvmsManager {
    * @returns Array of model configurations
    */
   public async getModels(): Promise<ModelConfig[]> {
-    const homeDir = homedir()
-    const ovmsDir = path.join(homeDir, HOME_CHERRY_DIR, 'ovms', 'ovms')
+    const ovmsDir = application.getPath('feature.ovms.ovms')
     const configPath = path.join(ovmsDir, 'models', 'config.json')
 
     try {
@@ -571,6 +585,3 @@ class OvmsManager {
     }
   }
 }
-
-// Export singleton instance
-export const ovmsManager = isOvmsSupported ? new OvmsManager() : undefined

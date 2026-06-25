@@ -2,29 +2,62 @@ import { execSync, spawn } from 'node:child_process'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import { Socket } from 'node:net'
-import os from 'node:os'
 import path from 'node:path'
 
+import { application } from '@application'
 import { loggerService } from '@logger'
-import { isWin } from '@main/constant'
-import { isUserInChina } from '@main/utils/ipService'
-import { crossPlatformSpawn, findExecutableInEnv, getBinaryPath, runInstallScript } from '@main/utils/process'
+import { BaseService, DependsOn, Injectable, Phase, ServicePhase } from '@main/core/lifecycle'
+import { isWin } from '@main/core/platform'
+import { WindowType } from '@main/core/window/types'
+import type { Model, Provider, ProviderType, VertexProvider } from '@main/data/migration/v2/legacyTypes'
+import { crossPlatformSpawn, findExecutableInEnv, getBinaryPath } from '@main/utils/process'
 import getShellEnv, { refreshShellEnv } from '@main/utils/shell-env'
-import type { OperationResult } from '@shared/config/types'
 import { IpcChannel } from '@shared/IpcChannel'
-import { formatApiHost, hasAPIVersion, withoutTrailingSlash } from '@shared/utils'
-import type { Model, Provider, ProviderType, VertexProvider } from '@types'
+import type { OperationResult } from '@shared/types/codeTools'
+import { formatApiHost, hasAPIVersion, withoutTrailingSlash } from '@shared/utils/api'
 
-import { parseCurrentVersion, parseUpdateStatus } from './utils/openClawParsers'
-import VertexAIService from './VertexAIService'
-import { windowService } from './WindowService'
+import { vertexAiService } from './VertexAiService'
 
 const logger = loggerService.withContext('OpenClawService')
 
-const OPENCLAW_CONFIG_DIR = path.join(os.homedir(), '.openclaw')
-const OPENCLAW_CONFIG_PATH = path.join(OPENCLAW_CONFIG_DIR, 'openclaw.json')
-const OPENCLAW_CONFIG_BAK_PATH = path.join(OPENCLAW_CONFIG_DIR, 'openclaw.json.bak')
-const OPENCLAW_LEGACY_CONFIG_PATH = path.join(OPENCLAW_CONFIG_DIR, 'openclaw.cherry.json')
+/**
+ * Parse the current version from `openclaw --version` output.
+ * Example input: "OpenClaw 2026.3.9 (fe96034)"
+ */
+export function parseCurrentVersion(versionOutput: string): string | null {
+  const match = versionOutput.match(/OpenClaw\s+([\d.]+)/i)
+  return match?.[1] ?? null
+}
+
+/**
+ * Parse the update status from `openclaw update status` output.
+ * Returns the latest version string if a **binary** update is available, otherwise null.
+ *
+ * Cherry Studio installs OpenClaw as a standalone binary, so we only care about
+ * binary-channel updates. npm/pkg-channel updates are ignored because they
+ * require a different upgrade path (`npm update -g`).
+ *
+ * The table output contains a row like:
+ *   │ Update   │ available · binary · 2026.3.12 │
+ * And a summary line like:
+ *   Update available (binary 2026.3.12). Run: openclaw update
+ */
+export function parseUpdateStatus(statusOutput: string): string | null {
+  // Match binary-channel update from table row: "available · binary · <version>"
+  const tableMatch = statusOutput.match(/available\s*·\s*binary\s*·?\s*([\d.]+)/i)
+  if (tableMatch) return tableMatch[1]
+
+  // Match binary-channel update from summary line: "Update available (binary <version>)"
+  const summaryMatch = statusOutput.match(/Update available\s*\(binary\s+([\d.]+)\)/i)
+  if (summaryMatch) return summaryMatch[1]
+
+  return null
+}
+
+const openclawConfigDir = () => application.getPath('external.openclaw.config')
+const openclawConfigPath = () => path.join(openclawConfigDir(), 'openclaw.json')
+const openclawConfigBakPath = () => path.join(openclawConfigDir(), 'openclaw.json.bak')
+const openclawLegacyConfigPath = () => path.join(openclawConfigDir(), 'openclaw.cherry.json')
 const SYMLINK_PATH = '/usr/local/bin/openclaw'
 const DEFAULT_GATEWAY_PORT = 18790
 
@@ -124,7 +157,10 @@ function isVertexProvider(provider: Provider): provider is VertexProvider {
   return provider.type === 'vertexai'
 }
 
-class OpenClawService {
+@Injectable('OpenClawService')
+@ServicePhase(Phase.WhenReady)
+@DependsOn(['WindowManager'])
+export class OpenClawService extends BaseService {
   private gatewayStatus: GatewayStatus = 'stopped'
   private gatewayPort: number = DEFAULT_GATEWAY_PORT
   private gatewayAuthToken: string = ''
@@ -133,19 +169,29 @@ class OpenClawService {
     return `ws://127.0.0.1:${this.gatewayPort}/ws`
   }
 
-  constructor() {
-    this.checkInstalled = this.checkInstalled.bind(this)
-    this.install = this.install.bind(this)
-    this.uninstall = this.uninstall.bind(this)
-    this.startGateway = this.startGateway.bind(this)
-    this.stopGateway = this.stopGateway.bind(this)
-    this.getStatus = this.getStatus.bind(this)
-    this.checkHealth = this.checkHealth.bind(this)
-    this.getDashboardUrl = this.getDashboardUrl.bind(this)
-    this.syncProviderConfig = this.syncProviderConfig.bind(this)
-    this.getChannelStatus = this.getChannelStatus.bind(this)
-    this.checkUpdate = this.checkUpdate.bind(this)
-    this.performUpdate = this.performUpdate.bind(this)
+  protected async onInit(): Promise<void> {
+    this.registerIpcHandlers()
+  }
+
+  protected async onStop(): Promise<void> {
+    await this.stopGateway()
+  }
+
+  private registerIpcHandlers(): void {
+    this.ipcHandle(IpcChannel.OpenClaw_CheckInstalled, () => this.checkInstalled())
+    this.ipcHandle(IpcChannel.OpenClaw_Install, () => this.install())
+    this.ipcHandle(IpcChannel.OpenClaw_Uninstall, () => this.uninstall())
+    this.ipcHandle(IpcChannel.OpenClaw_StartGateway, (_e, port?: number) => this.startGateway(port))
+    this.ipcHandle(IpcChannel.OpenClaw_StopGateway, () => this.stopGateway())
+    this.ipcHandle(IpcChannel.OpenClaw_GetStatus, () => this.getStatus())
+    this.ipcHandle(IpcChannel.OpenClaw_CheckHealth, () => this.checkHealth())
+    this.ipcHandle(IpcChannel.OpenClaw_GetDashboardUrl, () => this.getDashboardUrl())
+    this.ipcHandle(IpcChannel.OpenClaw_SyncConfig, (_e, provider, primaryModel) =>
+      this.syncProviderConfig(provider, primaryModel)
+    )
+    this.ipcHandle(IpcChannel.OpenClaw_GetChannels, () => this.getChannelStatus())
+    this.ipcHandle(IpcChannel.OpenClaw_CheckUpdate, () => this.checkUpdate())
+    this.ipcHandle(IpcChannel.OpenClaw_PerformUpdate, () => this.performUpdate())
   }
 
   /**
@@ -181,8 +227,9 @@ class OpenClawService {
    * Send install progress to renderer
    */
   private sendInstallProgress(message: string, type: 'info' | 'warn' | 'error' = 'info') {
-    const win = windowService.getMainWindow()
-    win?.webContents.send(IpcChannel.OpenClaw_InstallProgress, { message, type })
+    application
+      .get('WindowManager')
+      .broadcastToType(WindowType.Main, IpcChannel.OpenClaw_InstallProgress, { message, type })
   }
 
   /**
@@ -255,28 +302,15 @@ class OpenClawService {
   }
 
   /**
-   * Install OpenClaw by downloading the binary from releases.
-   * Uses gitcode.com mirror for China users, GitHub releases for others.
+   * Install OpenClaw via BinaryManager (mise npm:openclaw backend).
    */
   public async install(): Promise<OperationResult> {
     try {
-      this.sendInstallProgress('Checking download source...')
-      const useMirror = await isUserInChina()
-      const extraEnv: Record<string, string> = {}
-      if (useMirror) {
-        extraEnv.OPENCLAW_USE_MIRROR = '1'
-        logger.info('Using gitcode mirror for OpenClaw download')
-        this.sendInstallProgress('Using mirror source for download...')
-      }
-
-      this.sendInstallProgress('Downloading and installing OpenClaw...')
-      await runInstallScript('install-openclaw.js', extraEnv)
-
+      this.sendInstallProgress('Installing OpenClaw...')
+      await application.get('BinaryManager').installTool({ name: 'openclaw', tool: 'npm:openclaw' })
       await this.linkBinary()
-
       this.sendInstallProgress('OpenClaw installed successfully!')
-      logger.info('OpenClaw binary installed via install script')
-
+      logger.info('OpenClaw installed via BinaryManager')
       return { success: true }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -287,7 +321,7 @@ class OpenClawService {
   }
 
   /**
-   * Uninstall OpenClaw by removing the binary from ~/.cherrystudio/bin/.
+   * Uninstall OpenClaw via BinaryManager.
    */
   public async uninstall(): Promise<OperationResult> {
     // Stop the gateway before removing binary
@@ -296,33 +330,9 @@ class OpenClawService {
     }
 
     try {
-      const binaryName = isWin ? 'openclaw.exe' : 'openclaw'
-      const binDir = await getBinaryPath()
-      const binaryPath = path.join(binDir, binaryName)
-
-      this.sendInstallProgress('Removing OpenClaw binary...')
-
+      this.sendInstallProgress('Removing OpenClaw...')
       await this.unlinkBinary()
-
-      if (fs.existsSync(binaryPath)) {
-        fs.unlinkSync(binaryPath)
-        logger.info(`Removed OpenClaw binary: ${binaryPath}`)
-      }
-
-      // Remove package.json (shipped with OpenClaw binary package)
-      const packageJsonPath = path.join(binDir, 'package.json')
-      if (fs.existsSync(packageJsonPath)) {
-        fs.unlinkSync(packageJsonPath)
-        logger.info(`Removed OpenClaw package.json: ${packageJsonPath}`)
-      }
-
-      // Also remove sidecar lib directory if present
-      const libDir = path.join(binDir, 'lib')
-      if (fs.existsSync(libDir)) {
-        fs.rmSync(libDir, { recursive: true, force: true })
-        logger.info('Removed sidecar lib directory')
-      }
-
+      await application.get('BinaryManager').removeTool('openclaw')
       this.sendInstallProgress('OpenClaw uninstalled successfully!')
       return { success: true }
     } catch (error) {
@@ -336,7 +346,7 @@ class OpenClawService {
   /**
    * Start the OpenClaw Gateway
    */
-  public async startGateway(_: Electron.IpcMainInvokeEvent, port?: number): Promise<OperationResult> {
+  public async startGateway(port?: number): Promise<OperationResult> {
     this.gatewayPort = port ?? DEFAULT_GATEWAY_PORT
 
     // Prevent concurrent startup calls
@@ -691,8 +701,9 @@ class OpenClawService {
   }
 
   /**
-   * Get OpenClaw Dashboard URL (for opening in minapp).
-   * The Control UI uses ?token= to auto-authenticate the WebSocket connection.
+   * Get OpenClaw Dashboard URL (for opening in miniapp).
+   * The Control UI uses #token= to bootstrap WebSocket authentication while
+   * keeping the token client-side instead of sending it in HTTP requests.
    */
   public getDashboardUrl(): string {
     // Ensure we have the token (may have been lost after app restart)
@@ -703,7 +714,7 @@ class OpenClawService {
     if (this.gatewayAuthToken) {
       // Use query string (not URL fragment) so dashboard app state can persist correctly.
       // Fragment (#...) is often used by SPAs for transient client-side state.
-      url += `?token=${encodeURIComponent(this.gatewayAuthToken)}`
+      url += `#token=${encodeURIComponent(this.gatewayAuthToken)}`
     }
     return url
   }
@@ -713,8 +724,8 @@ class OpenClawService {
    */
   private loadAuthTokenFromConfig(): void {
     try {
-      if (fs.existsSync(OPENCLAW_CONFIG_PATH)) {
-        const content = fs.readFileSync(OPENCLAW_CONFIG_PATH, 'utf-8')
+      if (fs.existsSync(openclawConfigPath())) {
+        const content = fs.readFileSync(openclawConfigPath(), 'utf-8')
         const config = JSON.parse(content) as OpenClawConfig
         const token = config.gateway?.auth?.token
         if (token) {
@@ -722,8 +733,8 @@ class OpenClawService {
           logger.info('Recovered auth token from config file')
         }
       }
-    } catch {
-      logger.debug('Failed to load auth token from config file')
+    } catch (error) {
+      logger.warn('Failed to load auth token from config file', error as Error)
     }
   }
 
@@ -737,32 +748,28 @@ class OpenClawService {
   /**
    * Sync Cherry Studio Provider configuration to OpenClaw
    */
-  public async syncProviderConfig(
-    _: Electron.IpcMainInvokeEvent,
-    provider: Provider,
-    primaryModel: Model
-  ): Promise<OperationResult> {
+  public async syncProviderConfig(provider: Provider, primaryModel: Model): Promise<OperationResult> {
     try {
       // Ensure config directory exists
-      if (!fs.existsSync(OPENCLAW_CONFIG_DIR)) {
-        fs.mkdirSync(OPENCLAW_CONFIG_DIR, { recursive: true })
+      if (!fs.existsSync(openclawConfigDir())) {
+        fs.mkdirSync(openclawConfigDir(), { recursive: true })
       }
 
       // Migrate legacy openclaw.cherry.json → openclaw.json
-      if (fs.existsSync(OPENCLAW_LEGACY_CONFIG_PATH)) {
-        if (fs.existsSync(OPENCLAW_CONFIG_PATH)) {
-          fs.renameSync(OPENCLAW_CONFIG_PATH, OPENCLAW_CONFIG_BAK_PATH)
+      if (fs.existsSync(openclawLegacyConfigPath())) {
+        if (fs.existsSync(openclawConfigPath())) {
+          fs.renameSync(openclawConfigPath(), openclawConfigBakPath())
           logger.info('Migrated openclaw.json → openclaw.json.bak')
         }
-        fs.renameSync(OPENCLAW_LEGACY_CONFIG_PATH, OPENCLAW_CONFIG_PATH)
+        fs.renameSync(openclawLegacyConfigPath(), openclawConfigPath())
         logger.info('Migrated openclaw.cherry.json → openclaw.json')
       }
 
       // Read existing config
       let config: OpenClawConfig = {}
-      if (fs.existsSync(OPENCLAW_CONFIG_PATH)) {
+      if (fs.existsSync(openclawConfigPath())) {
         try {
-          const content = fs.readFileSync(OPENCLAW_CONFIG_PATH, 'utf-8')
+          const content = fs.readFileSync(openclawConfigPath(), 'utf-8')
           config = JSON.parse(content)
         } catch {
           logger.warn('Failed to parse existing OpenClaw config, creating new one')
@@ -777,13 +784,13 @@ class OpenClawService {
       const apiType = this.determineApiType(provider, primaryModel)
       const baseUrl = this.getBaseUrlForApiType(provider, apiType)
 
-      // Get API key - for vertexai, get access token from VertexAIService
+      // Get API key - for vertexai, get access token from VertexAiService
       // If multiple API keys are configured (comma-separated), use the first one
       // Some providers like Ollama and LM Studio don't require API keys
       let apiKey = provider.apiKey ? provider.apiKey.split(',')[0].trim() : ''
       if (isVertexProvider(provider)) {
         try {
-          const vertexService = VertexAIService.getInstance()
+          const vertexService = vertexAiService
           apiKey = await vertexService.getAccessToken({
             projectId: provider.project,
             serviceAccount: {
@@ -846,7 +853,7 @@ class OpenClawService {
       }
 
       // Write config file
-      fs.writeFileSync(OPENCLAW_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8')
+      fs.writeFileSync(openclawConfigPath(), JSON.stringify(config, null, 2), 'utf-8')
 
       logger.info(`Synced provider ${provider.id} to OpenClaw config`)
       return { success: true }
@@ -906,7 +913,7 @@ class OpenClawService {
   }
 
   /**
-   * Perform OpenClaw update by running `openclaw update`.
+   * Perform OpenClaw update through BinaryManager so mise remains the owner.
    */
   public async performUpdate(): Promise<OperationResult> {
     try {
@@ -920,23 +927,11 @@ class OpenClawService {
         await this.stopGateway()
       }
 
-      this.sendInstallProgress('Running openclaw update...')
-      const shellEnv = await getShellEnv()
-      const { code, stdout, stderr } = await this.execOpenClawCommandWithResult(
-        openclawPath,
-        ['update'],
-        shellEnv,
-        60000
-      )
+      this.sendInstallProgress('Updating OpenClaw via BinaryManager...')
+      await application.get('BinaryManager').installTool({ name: 'openclaw', tool: 'npm:openclaw' })
+      void refreshShellEnv()
 
-      if (code !== 0) {
-        const errMsg = stderr.trim() || `Update failed with code ${code}`
-        logger.error('OpenClaw update failed:', { error: errMsg })
-        this.sendInstallProgress(errMsg, 'error')
-        return { success: false, message: errMsg }
-      }
-
-      logger.info('OpenClaw updated successfully', { output: stdout.trim() })
+      logger.info('OpenClaw updated successfully')
       this.sendInstallProgress('OpenClaw updated successfully!')
       return { success: true }
     } catch (error) {
@@ -1091,5 +1086,3 @@ class OpenClawService {
     return withoutTrailingSlash(apiHost)
   }
 }
-
-export const openClawService = new OpenClawService()
